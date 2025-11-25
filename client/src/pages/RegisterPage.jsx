@@ -5,7 +5,8 @@ import api from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { motion } from 'framer-motion';
+import { Bus, CheckCircle2 } from 'lucide-react';
 
 export default function RegisterPage() {
     const [formData, setFormData] = useState({
@@ -46,40 +47,93 @@ export default function RegisterPage() {
     };
 
     return (
-        <div className="flex min-h-[80vh] items-center justify-center px-4">
-            <Card className="w-full max-w-md">
-                <CardHeader className="text-center">
-                    <CardTitle className="text-2xl">Đăng ký tài khoản</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <div className="space-y-2">
+        <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2 xl:min-h-[800px]">
+            {/* Cột trái: Inspirational Content */}
+            <div className="hidden bg-muted lg:block relative h-full overflow-hidden">
+                <div className="absolute inset-0 bg-zinc-900" />
+                <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=2021&auto=format&fit=crop')] bg-cover bg-center opacity-50" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+
+                <div className="relative z-20 flex items-center text-lg font-medium text-white p-10">
+                    <Bus className="mr-2 h-6 w-6" />
+                    VexereClone Inc
+                </div>
+
+                <div className="relative z-20 mt-auto flex flex-col justify-center h-full px-10 text-white">
+                    <div className="space-y-4 max-w-lg">
+                        <h2 className="text-4xl font-bold tracking-tight">Tham gia cộng đồng du lịch lớn nhất Việt Nam</h2>
+                        <ul className="space-y-3 mt-6">
+                            <li className="flex items-center gap-2 text-lg text-zinc-300">
+                                <CheckCircle2 className="h-5 w-5 text-green-400" /> Đặt vé nhanh chóng, tiện lợi
+                            </li>
+                            <li className="flex items-center gap-2 text-lg text-zinc-300">
+                                <CheckCircle2 className="h-5 w-5 text-green-400" /> Ưu đãi độc quyền cho thành viên
+                            </li>
+                            <li className="flex items-center gap-2 text-lg text-zinc-300">
+                                <CheckCircle2 className="h-5 w-5 text-green-400" /> Hỗ trợ khách hàng 24/7
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            {/* Cột phải: Register Form */}
+            <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-background">
+                <motion.div
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="mx-auto grid w-full max-w-[450px] gap-6"
+                >
+                    <div className="grid gap-2 text-center">
+                        <h1 className="text-3xl font-bold tracking-tight">Tạo tài khoản mới</h1>
+                        <p className="text-balance text-muted-foreground">
+                            Nhập thông tin cá nhân của bạn để bắt đầu
+                        </p>
+                    </div>
+
+                    <form onSubmit={handleSubmit} className="grid gap-4">
+                        <div className="grid gap-2">
                             <Label htmlFor="full_name">Họ và tên</Label>
-                            <Input id="full_name" required value={formData.full_name} onChange={handleChange} />
+                            <Input id="full_name" required value={formData.full_name} onChange={handleChange} placeholder="Nguyễn Văn A" className="h-11" />
                         </div>
-                        <div className="space-y-2">
+                        <div className="grid gap-2">
                             <Label htmlFor="email">Email</Label>
-                            <Input id="email" type="email" required value={formData.email} onChange={handleChange} />
+                            <Input id="email" type="email" required value={formData.email} onChange={handleChange} placeholder="name@example.com" className="h-11" />
                         </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="password">Mật khẩu</Label>
-                            <Input id="password" type="password" required value={formData.password} onChange={handleChange} />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="confirmPassword">Xác nhận mật khẩu</Label>
-                            <Input id="confirmPassword" type="password" required value={formData.confirmPassword} onChange={handleChange} />
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="grid gap-2">
+                                <Label htmlFor="password">Mật khẩu</Label>
+                                <Input id="password" type="password" required value={formData.password} onChange={handleChange} className="h-11" />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="confirmPassword">Xác nhận</Label>
+                                <Input id="confirmPassword" type="password" required value={formData.confirmPassword} onChange={handleChange} className="h-11" />
+                            </div>
                         </div>
 
-                        {error && <p className="text-sm text-destructive text-center">{error}</p>}
+                        {error && (
+                            <motion.p
+                                initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                                className="text-sm text-red-500 text-center bg-red-50 py-2 rounded border border-red-100"
+                            >
+                                {error}
+                            </motion.p>
+                        )}
 
-                        <Button type="submit" className="w-full">Đăng ký</Button>
+                        <Button type="submit" className="w-full h-11 text-md font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 border-0 shadow-md hover:shadow-lg transition-all">
+                            Đăng ký tài khoản
+                        </Button>
                     </form>
 
                     <div className="mt-4 text-center text-sm">
-                        Đã có tài khoản? <Link to="/login" className="text-primary hover:underline">Đăng nhập</Link>
+                        Đã có tài khoản?{' '}
+                        <Link to="/login" className="font-semibold text-indigo-600 hover:text-indigo-500 hover:underline">
+                            Đăng nhập ngay
+                        </Link>
                     </div>
-                </CardContent>
-            </Card>
+                </motion.div>
+            </div>
         </div>
     );
 }
