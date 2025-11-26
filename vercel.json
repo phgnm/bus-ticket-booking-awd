@@ -16,6 +16,11 @@
       }
     }
   ],
+  "build": {
+    "env": {
+      "VITE_API_URL": "/api"
+    }
+  },
   "routes": [
     {
       "src": "/api/(.*)",
@@ -23,7 +28,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "client/$1"
+      "dest": "/index.html"
     }
   ],
   "installCommand": "npm install --prefix client && npm install --prefix server && npm install"
