@@ -97,6 +97,7 @@ exports.login = async (req, res) => {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production', 
             sameSite: 'strict',
+            path: '/',
             maxAge: 7 * 24 * 60 * 60 * 1000
         });
 
@@ -114,7 +115,12 @@ exports.logout = async (req, res) => {
         await pool.query("DELETE FROM refresh_tokens WHERE token = $1", [refreshToken]);
     }
 
-    res.clearCookie('refreshToken');
+    res.clearCookie('refreshToken', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        path: '/'
+    });
     res.json({
         msg: "Logged out"
     });
