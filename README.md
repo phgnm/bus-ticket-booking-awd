@@ -15,6 +15,42 @@ Dự án này là nền tảng cho project cuối kỳ hệ thống Đặt vé x
 
 ### 2.1 FRONTEND
 
+#### 2.1.1. Yêu cầu phần mềm
+[ ] Node.js (v18+)
+
+[ ] Trình quản lý gói npm (đi kèm với Node.js)
+
+#### 2.1.2. Khởi tạo cho Frontend
+Di chuyển vào thư mục client:
+
+```bash
+cd client
+```
+
+Cài đặt Dependencies:
+
+```bash
+npm install
+```
+
+Cấu hình Environment: Tạo file `.env` trong thư mục `client/` và điền:
+
+```env
+# URL của Backend API (Mặc định local)
+VITE_API_URL=http://localhost:5000/api
+
+# Google OAuth Client ID (Lấy từ Google Cloud Console)
+VITE_GOOGLE_CLIENT_ID=YOUR_GOOGLE_CLIENT_ID_HERE
+```
+
+Khởi động Frontend:
+
+```bash
+npm run dev
+```
+
+Ứng dụng sẽ chạy tại:  
+http://localhost:5173
 ### 2.2 BACKEND
 
 #### 2.2.1. Yêu cầu phần mềm
