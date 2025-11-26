@@ -4,6 +4,32 @@ const jwt = require('jsonwebtoken');
 const { OAuth2Client } = require('google-auth-library');
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
+const generateTokens = (user) => {
+    const accessToken = jwt.sign(
+        {
+            id: user.id,
+            role: user.role
+        },
+        process.env.JWT_ACCESS_SECRET,
+        {
+            expiresIn: '60m'
+        }
+    );
+
+    const refreshToken = jwt.sign(
+        {
+            id: user.id,
+            role: user.role,
+        },
+        process.env.JWT_REFRESH_SECRET,
+        {
+            expiresIn: '7d'
+        }
+    );
+
+    return { accessToken, refreshToken };
+}
+
 exports.register = async (req, res) => {
     try {
         const { email, password, full_name } = req.body;
@@ -24,7 +50,7 @@ exports.register = async (req, res) => {
                 id: newUser.rows[0].id,
                 role: newUser.rows[0].role,
             },
-            process.env.JWT_SECRET || 'secret',
+            process.env.JWT_ACCESS_SECRET,
             {
                 expiresIn: '1h',
             },
@@ -58,26 +84,41 @@ exports.login = async (req, res) => {
             return res.status(400).json({ msg: 'Invalid Credentials' });
         }
 
-        // Return Token
-        const token = jwt.sign(
-            {
-                id: user.rows[0].id,
-                role: user.rows[0].role,
-            },
-            process.env.JWT_SECRET,
-            {
-                expiresIn: '1h',
-            },
+        const { accessToken, refreshToken } = generateTokens(user.rows[0]);
+
+        // Save refresh token into DB
+        await pool.query(
+            "INSERT INTO refresh_tokens (token, user_id, expires_at) VALUES ($1, $2, NOW() + INTERVAL '7 days')",
+            [refreshToken, user.rows[0].id]
         );
 
-        // Exclude password_hash from user object
-        delete user.rows[0].password_hash;
-        res.json({ token, user: user.rows[0] });
+        // Send refresh token via cookie
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production', 
+            sameSite: 'strict',
+            maxAge: 7 * 24 * 60 * 60 * 1000
+        });
+
+        // Return accessToken
+        res.json({ token: accessToken, user: { ...user.rows[0] } });
     } catch (err) {
         console.error(err.message);
         res.status(500).send('Server Error');
     }
 };
+
+exports.logout = async (req, res) => {
+    const refreshToken = req.cookies.refreshToken;
+    if (refreshToken) {
+        await pool.query("DELETE FROM refresh_tokens WHERE token = $1", [refreshToken]);
+    }
+
+    res.clearCookie('refreshToken');
+    res.json({
+        msg: "Logged out"
+    });
+}
 
 exports.googleLogin = async (req, res) => {
     const { idToken } = req.body;
@@ -111,7 +152,7 @@ exports.googleLogin = async (req, res) => {
                 id: user.rows[0].id,
                 role: user.rows[0].role,
             },
-            process.env.JWT_SECRET || 'secret',
+            process.env.JWT_ACCESS_SECRET,
             {
                 expiresIn: '1h',
             },
@@ -123,3 +164,36 @@ exports.googleLogin = async (req, res) => {
         res.status(401).json({ msg: 'Invalid Google token' });
     }
 };
+
+exports.refreshToken = async (req, res) => {
+    const refreshToken = req.cookies.refreshToken;
+    if (!refreshToken)
+        return res.status(401).json({
+            msg: "Unauthenticated"
+        });
+
+    try {
+        // Verify token
+        const payload = jwt.verify(this.refreshToken, process.env.JWT_REFRESH_SECRET);
+        
+        // Check if valid
+        const tokenInDb = await pool.query("SELECT * FROM refresh_tokens WHERE token = $1", [refreshToken]);
+        if (tokenInDb.rows.length === 0)
+            return res.status(403).json({
+                msg: "Token invalid or revoked"
+            });
+        
+        // Create new access token
+        const newAccessToken = jwt.sign(
+            { id: payload.id, role: payload.role },
+            process.env.JWT_ACCESS_SECRET,
+            { expiresIn: '60m' }
+        );
+
+        res.json({ token: newAccessToken });
+    }
+    catch (err) {
+        console.error(err);
+        res.status(403).json({ msg: "Token expired or invalid" });
+    }
+}
