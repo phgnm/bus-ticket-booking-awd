@@ -1,7 +1,4 @@
-## I. Nhiệm vụ của Frontend (Assignment 1 Completion)
 
-
----
 
 ## II. Kế hoạch cho Final Project (Assignment 2 & 3)
 
