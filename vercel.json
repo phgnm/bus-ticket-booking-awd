@@ -16,6 +16,11 @@
       }
     }
   ],
+  "build": {
+    "env": {
+      "VITE_API_URL": "/api"
+    }
+  },
   "routes": [
     {
       "src": "/api/(.*)",
