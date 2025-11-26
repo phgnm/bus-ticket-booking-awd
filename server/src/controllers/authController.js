@@ -174,7 +174,7 @@ exports.refreshToken = async (req, res) => {
 
     try {
         // Verify token
-        const payload = jwt.verify(this.refreshToken, process.env.JWT_REFRESH_SECRET);
+        const payload = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
         
         // Check if valid
         const tokenInDb = await pool.query("SELECT * FROM refresh_tokens WHERE token = $1", [refreshToken]);
