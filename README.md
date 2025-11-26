@@ -50,6 +50,42 @@ Dự án này là nền tảng cho project cuối kỳ hệ thống Đặt vé x
 
 ## 3. Thiết kế cho Frontend
 
+### 3.1. Công nghệ sử dụng (Tech Stack)
+Build Tool: **Vite** – Giúp khởi tạo và build dự án React nhanh chóng.
+
+Styling: **Tailwind CSS** – Framework CSS utility-first.
+
+UI Components: **Shadcn UI** – Bộ component tái sử dụng, tùy chỉnh cao dựa trên Radix UI (Button, Input, Card, Dropdown...).
+
+Routing: **React Router DOM (v6+)** – Quản lý điều hướng trang.
+
+HTTP Client: **Axios** – Gửi request tới Backend.
+
+Animation: **Framer Motion** – Tạo hiệu ứng chuyển động mượt mà.
+
+Icons: **Lucide React**.
+
+### 3.2. Kiến trúc thư mục (Project Structure)
+Cấu trúc thư mục `client/src` được tổ chức theo chức năng:
+
+- `components/ui/`: Chứa các thành phần giao diện cơ sở (Base Components) từ Shadcn UI.
+- `components/`: Chứa các thành phần chức năng chung (Navbar, ProtectedRoute...).
+- `pages/`: Chứa các trang chính (HomePage, LoginPage, RegisterPage, AdminDashboard).
+- `context/`: Quản lý Global State với AuthContext.
+- `lib/`: Chứa cấu hình và tiện ích (api.js với Axios interceptors).
+
+### 3.3. Luồng xử lý dữ liệu & Bảo mật (Logic Flow)
+- **Authentication State:** Sử dụng Context API để lưu và đồng bộ user + token với localStorage.
+- **API Interceptor:** Tự động đính kèm JWT vào header Authorization cho mọi request.
+- **Protected Routes:** Kiểm tra login + role để bảo vệ trang nhạy cảm.
+
+### 3.4. Thiết kế giao diện (UI/UX)
+- **Responsive:** Tương thích mobile & desktop nhờ Tailwind.
+- **Visual Effects:** Dùng Glassmorphism + Framer Motion cho hiệu ứng mượt.
+- **Form Handling:** Form đăng nhập/đăng ký thủ công kèm validation cơ bản.
+
+
+
 ## 4. Thiết kế cho Backend
 
 ### 4.1. Authentication Flow
