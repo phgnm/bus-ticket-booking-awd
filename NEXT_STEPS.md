@@ -1,6 +1,6 @@
 
 
-## II. Kế hoạch cho Final Project (Assignment 2 & 3)
+## Kế hoạch cho Final Project (Assignment 2 & 3)
 
 ### 1. Assignment 2: Core Features (Quản lý Chuyến xe & Đặt vé)
 Trọng tâm: Hoàn thiện luồng nghiệp vụ chính từ tìm kiếm → chọn ghế → đặt vé.
