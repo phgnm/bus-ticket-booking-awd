@@ -1,3 +1,9 @@
 node_modules/
 dist/
 *.env
+
+# Log files
+server_output.log
+
+# Environment variables
+server/.env

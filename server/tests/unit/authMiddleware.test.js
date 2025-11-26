@@ -1,9 +1,10 @@
 const { authenticateJWT } = require('../../src/middlewares/authMiddleware');
 const httpMocks = require('node-mocks-http');
 const jwt = require('jsonwebtoken');
+require('dotenv').config();
 
 // Mock process.env
-process.env.JWT_SECRET = 'test-secret';
+process.env.JWT_ACCESS_SECRET = 'test-secret';
 
 describe('Auth Middleware', () => {
     it('should return 401 if no token provided', () => {
