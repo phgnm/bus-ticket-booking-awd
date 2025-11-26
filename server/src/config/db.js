@@ -1,10 +1,13 @@
 const { Pool } = require('pg');
 require('dotenv').config();
 
+const useSSL = !!process.env.DATABASE_URL;
+
+const connectionString = process.env.DATABASE_URL;
+
 const pool = new Pool({
-    connectionString:
-        process.env.DATABASE_URL ||
-        `postgresql://postgres:${process.env.POSTGRES_PASSWORD}@localhost:5432/bus_ticket_dev`,
+    connectionString: connectionString,
+    ssl: useSSL ? { rejectUnauthorized: false } : false,
 });
 
 module.exports = pool;
