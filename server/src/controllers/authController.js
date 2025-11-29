@@ -9,12 +9,12 @@ const generateTokens = (user) => {
     const accessToken = jwt.sign(
         {
             id: user.id,
-            role: user.role
+            role: user.role,
         },
         process.env.JWT_ACCESS_SECRET,
         {
-            expiresIn: '60m'
-        }
+            expiresIn: '60m',
+        },
     );
 
     const refreshToken = jwt.sign(
@@ -24,19 +24,19 @@ const generateTokens = (user) => {
         },
         process.env.JWT_REFRESH_SECRET,
         {
-            expiresIn: '7d'
-        }
+            expiresIn: '7d',
+        },
     );
 
     return { accessToken, refreshToken };
-}
+};
 
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
-    }
+    },
 });
 
 exports.register = async (req, res) => {
@@ -98,16 +98,16 @@ exports.login = async (req, res) => {
         // Save refresh token into DB
         await pool.query(
             "INSERT INTO refresh_tokens (token, user_id, expires_at) VALUES ($1, $2, NOW() + INTERVAL '7 days')",
-            [refreshToken, user.rows[0].id]
+            [refreshToken, user.rows[0].id],
         );
 
         // Send refresh token via cookie
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production', 
+            secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
             path: '/',
-            maxAge: 7 * 24 * 60 * 60 * 1000
+            maxAge: 7 * 24 * 60 * 60 * 1000,
         });
 
         // Return accessToken
@@ -121,19 +121,21 @@ exports.login = async (req, res) => {
 exports.logout = async (req, res) => {
     const refreshToken = req.cookies.refreshToken;
     if (refreshToken) {
-        await pool.query("DELETE FROM refresh_tokens WHERE token = $1", [refreshToken]);
+        await pool.query('DELETE FROM refresh_tokens WHERE token = $1', [
+            refreshToken,
+        ]);
     }
 
     res.clearCookie('refreshToken', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
-        path: '/'
+        path: '/',
     });
     res.json({
-        msg: "Logged out"
+        msg: 'Logged out',
     });
-}
+};
 
 exports.googleLogin = async (req, res) => {
     const { idToken } = req.body;
@@ -184,51 +186,58 @@ exports.refreshToken = async (req, res) => {
     const refreshToken = req.cookies.refreshToken;
     if (!refreshToken)
         return res.status(401).json({
-            msg: "Unauthenticated"
+            msg: 'Unauthenticated',
         });
 
     try {
         // Verify token
-        const payload = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
-        
+        const payload = jwt.verify(
+            refreshToken,
+            process.env.JWT_REFRESH_SECRET,
+        );
+
         // Check if valid
-        const tokenInDb = await pool.query("SELECT * FROM refresh_tokens WHERE token = $1", [refreshToken]);
+        const tokenInDb = await pool.query(
+            'SELECT * FROM refresh_tokens WHERE token = $1',
+            [refreshToken],
+        );
         if (tokenInDb.rows.length === 0)
             return res.status(403).json({
-                msg: "Token invalid or revoked"
+                msg: 'Token invalid or revoked',
             });
-        
+
         // Create new access token
         const newAccessToken = jwt.sign(
             { id: payload.id, role: payload.role },
             process.env.JWT_ACCESS_SECRET,
-            { expiresIn: '60m' }
+            { expiresIn: '60m' },
         );
 
         res.json({ token: newAccessToken });
-    }
-    catch (err) {
+    } catch (err) {
         console.error(err);
-        res.status(403).json({ msg: "Token expired or invalid" });
+        res.status(403).json({ msg: 'Token expired or invalid' });
     }
-}
+};
 
 exports.forgotPassword = async (req, res) => {
     try {
         const { email } = req.body;
 
         const normalizedEmail = email.trim().toLowerCase();
-        console.log( `Email received: ${normalizedEmail}`);
+        console.log(`Email received: ${normalizedEmail}`);
 
         // check if user exists
-        const user = await pool.query('SELECT * FROM users WHERE email = $1', [normalizedEmail]);
-        
+        const user = await pool.query('SELECT * FROM users WHERE email = $1', [
+            normalizedEmail,
+        ]);
+
         console.log(`users: ${user}`);
 
         if (user.rows.length === 0) {
             return res.status(200).json({
                 // still say email has been sent to prevent illegal attack
-                msg: 'Link reset đã được gửi đến email, vui lòng kiểm tra'
+                msg: 'Link reset đã được gửi đến email, vui lòng kiểm tra',
             });
         }
 
@@ -236,14 +245,14 @@ exports.forgotPassword = async (req, res) => {
 
         // create jwt
         const resetToken = jwt.sign(
-            { 
+            {
                 id: targetUser.id,
-                purpose: 'reset-password'
+                purpose: 'reset-password',
             },
             process.env.JWT_ACCESS_SECRET,
             {
-                expiresIn: '15m'
-            }
+                expiresIn: '15m',
+            },
         );
 
         // save token to db to control
@@ -251,7 +260,7 @@ exports.forgotPassword = async (req, res) => {
 
         await pool.query(
             'INSERT INTO password_resets (user_id, token, expires_at) VALUES ($1, $2, $3)',
-            [targetUser.id, resetToken, expiresAt]
+            [targetUser.id, resetToken, expiresAt],
         );
 
         // send email
@@ -259,23 +268,22 @@ exports.forgotPassword = async (req, res) => {
         const mailOptions = {
             from: process.env.EMAIL_USER,
             to: email,
-            subject: "Đặt lại mật khẩu - Bus Ticket Booking",
+            subject: 'Đặt lại mật khẩu - Bus Ticket Booking',
             html: `
                 <h3>Yêu cầu đặt lại mật khẩu</h3>
                 <p>Bạn (hoặc ai đó) đã yêu cầu đặt lại mật khẩu cho tài khoản này.</p>
                 <p>Vui lòng click vào link bên dưới để đặt mật khẩu mới (Link hết hạn sau 15 phút):</p>
                 <a href="${resetUrl}" target="_blank">${resetUrl}</a>
                 <p>Nếu bạn không yêu cầu, vui lòng bỏ qua email này.</p>
-            `
+            `,
         };
 
         await transporter.sendMail(mailOptions);
 
         res.json({
-            msg:'Link reset đã được gửi đến email, vui lòng kiểm tra'
+            msg: 'Link reset đã được gửi đến email, vui lòng kiểm tra',
         });
-    }
-    catch (err) {
+    } catch (err) {
         console.error(err.message);
         res.status(500).send('Server Error');
     }
@@ -283,14 +291,11 @@ exports.forgotPassword = async (req, res) => {
 
 exports.resetPassword = async (req, res) => {
     try {
-        const {
-            token,
-            newPassword
-        } = req.body;
+        const { token, newPassword } = req.body;
 
         if (!token || !newPassword) {
             return res.status(400).json({
-                msg: 'Thiếu thông tin cần thiết'
+                msg: 'Thiếu thông tin cần thiết',
             });
         }
 
@@ -298,39 +303,41 @@ exports.resetPassword = async (req, res) => {
         let decoded;
         try {
             decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
-        }
-        catch (err) {
+        } catch (err) {
             return res.status(400).json({
-                msg: "Token không hợp lệ hoặc đã hết hạn"
+                msg: 'Token không hợp lệ hoặc đã hết hạn',
             });
         }
         // check token in DB
         const resetRecord = await pool.query(
             'SELECT * FROM password_resets WHERE token = $1 AND user_id = $2 AND expires_at > NOW()',
-            [token, decoded.id]
+            [token, decoded.id],
         );
-        if (resetRecord.rows.length === 0 ) {
+        if (resetRecord.rows.length === 0) {
             return res.status(400).json({
-                msg: 'Token không hợp lệ hoặc đã được sử dụng'
+                msg: 'Token không hợp lệ hoặc đã được sử dụng',
             });
         }
         // new password hash
         const salt = await bcrypt.genSalt(10);
         const passwordHash = await bcrypt.hash(newPassword, salt);
         // update user password
-        await pool.query(
-            'UPDATE users SET password_hash = $1 WHERE id = $2',
-            [passwordHash, decoded.id]
-        );
+        await pool.query('UPDATE users SET password_hash = $1 WHERE id = $2', [
+            passwordHash,
+            decoded.id,
+        ]);
         // delete token
-        await pool.query('DELETE FROM password_resets WHERE token = $1', [token]);
+        await pool.query('DELETE FROM password_resets WHERE token = $1', [
+            token,
+        ]);
         // delete from other device for security reason
-        await pool.query('DELETE FROM refresh_tokens WHERE user_id = $1', [decoded.id]);
+        await pool.query('DELETE FROM refresh_tokens WHERE user_id = $1', [
+            decoded.id,
+        ]);
         res.json({
-            msg: 'Đặt lại mật khẩu thành công. Vui lòng đăng nhập lại'
+            msg: 'Đặt lại mật khẩu thành công. Vui lòng đăng nhập lại',
         });
-    }
-    catch (err) {
+    } catch (err) {
         console.error(err.message);
         res.status(500).send('Server error');
     }

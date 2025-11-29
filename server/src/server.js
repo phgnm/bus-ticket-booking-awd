@@ -7,13 +7,12 @@ const PORT = process.env.PORT || 5000;
 
 // Hàm tạo Admin mặc định
 const createDefaultAdmin = async () => {
-
     // Kiểm tra xem đã có user nào có role = 'admin' chưa
-    const checkAdmin = await pool.query("SELECT * FROM users WHERE role = 'admin' LIMIT 1");
+    const checkAdmin = await pool.query(
+        "SELECT * FROM users WHERE role = 'admin' LIMIT 1",
+    );
 
     if (checkAdmin.rows.length === 0) {
-
-
         const email = 'admin@vexere.com';
         const password = 'admin123'; // Mật khẩu mặc định
         const fullName = 'System Administrator';
@@ -25,16 +24,9 @@ const createDefaultAdmin = async () => {
         // Insert vào DB
         await pool.query(
             "INSERT INTO users (email, password_hash, full_name, role) VALUES ($1, $2, $3, 'admin')",
-            [email, passwordHash, fullName]
+            [email, passwordHash, fullName],
         );
-
-
     }
-
-
-
-
-
 };
 
 // Khởi động server và chạy seed
