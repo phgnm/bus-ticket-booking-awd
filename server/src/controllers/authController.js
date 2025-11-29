@@ -225,14 +225,11 @@ exports.forgotPassword = async (req, res) => {
         const { email } = req.body;
 
         const normalizedEmail = email.trim().toLowerCase();
-        console.log(`Email received: ${normalizedEmail}`);
 
         // check if user exists
         const user = await pool.query('SELECT * FROM users WHERE email = $1', [
             normalizedEmail,
         ]);
-
-        console.log(`users: ${user}`);
 
         if (user.rows.length === 0) {
             return res.status(200).json({
@@ -305,7 +302,7 @@ exports.resetPassword = async (req, res) => {
             decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
         } catch (err) {
             return res.status(400).json({
-                msg: 'Token không hợp lệ hoặc đã hết hạn',
+                msg: `${err.message}`,
             });
         }
         // check token in DB
