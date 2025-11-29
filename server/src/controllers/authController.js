@@ -2,6 +2,7 @@ const pool = require('../config/db');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { OAuth2Client } = require('google-auth-library');
+const nodemailer = require('nodemailer');
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const generateTokens = (user) => {
@@ -29,6 +30,14 @@ const generateTokens = (user) => {
 
     return { accessToken, refreshToken };
 }
+
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+    }
+});
 
 exports.register = async (req, res) => {
     try {
@@ -203,3 +212,126 @@ exports.refreshToken = async (req, res) => {
         res.status(403).json({ msg: "Token expired or invalid" });
     }
 }
+
+exports.forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        const normalizedEmail = email.trim().toLowerCase();
+        console.log( `Email received: ${normalizedEmail}`);
+
+        // check if user exists
+        const user = await pool.query('SELECT * FROM users WHERE email = $1', [normalizedEmail]);
+        
+        console.log(`users: ${user}`);
+
+        if (user.rows.length === 0) {
+            return res.status(200).json({
+                // still say email has been sent to prevent illegal attack
+                msg: 'Link reset đã được gửi đến email, vui lòng kiểm tra'
+            });
+        }
+
+        const targetUser = user.rows[0];
+
+        // create jwt
+        const resetToken = jwt.sign(
+            { 
+                id: targetUser.id,
+                purpose: 'reset-password'
+            },
+            process.env.JWT_ACCESS_SECRET,
+            {
+                expiresIn: '15m'
+            }
+        );
+
+        // save token to db to control
+        const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+
+        await pool.query(
+            'INSERT INTO password_resets (user_id, token, expires_at) VALUES ($1, $2, $3)',
+            [targetUser.id, resetToken, expiresAt]
+        );
+
+        // send email
+        const resetUrl = `${process.env.CLIENT_URL}/reset-password?token=${resetToken}`;
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: "Đặt lại mật khẩu - Bus Ticket Booking",
+            html: `
+                <h3>Yêu cầu đặt lại mật khẩu</h3>
+                <p>Bạn (hoặc ai đó) đã yêu cầu đặt lại mật khẩu cho tài khoản này.</p>
+                <p>Vui lòng click vào link bên dưới để đặt mật khẩu mới (Link hết hạn sau 15 phút):</p>
+                <a href="${resetUrl}" target="_blank">${resetUrl}</a>
+                <p>Nếu bạn không yêu cầu, vui lòng bỏ qua email này.</p>
+            `
+        };
+
+        await transporter.sendMail(mailOptions);
+
+        res.json({
+            msg:'Link reset đã được gửi đến email, vui lòng kiểm tra'
+        });
+    }
+    catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+};
+
+exports.resetPassword = async (req, res) => {
+    try {
+        const {
+            token,
+            newPassword
+        } = req.body;
+
+        if (!token || !newPassword) {
+            return res.status(400).json({
+                msg: 'Thiếu thông tin cần thiết'
+            });
+        }
+
+        // verify token
+        let decoded;
+        try {
+            decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+        }
+        catch (err) {
+            return res.status(400).json({
+                msg: "Token không hợp lệ hoặc đã hết hạn"
+            });
+        }
+        // check token in DB
+        const resetRecord = await pool.query(
+            'SELECT * FROM password_resets WHERE token = $1 AND user_id = $2 AND expires_at > NOW()',
+            [token, decoded.id]
+        );
+        if (resetRecord.rows.length === 0 ) {
+            return res.status(400).json({
+                msg: 'Token không hợp lệ hoặc đã được sử dụng'
+            });
+        }
+        // new password hash
+        const salt = await bcrypt.genSalt(10);
+        const passwordHash = await bcrypt.hash(newPassword, salt);
+        // update user password
+        await pool.query(
+            'UPDATE users SET password_hash = $1 WHERE id = $2',
+            [passwordHash, decoded.id]
+        );
+        // delete token
+        await pool.query('DELETE FROM password_resets WHERE token = $1', [token]);
+        // delete from other device for security reason
+        await pool.query('DELETE FROM refresh_tokens WHERE user_id = $1', [decoded.id]);
+        res.json({
+            msg: 'Đặt lại mật khẩu thành công. Vui lòng đăng nhập lại'
+        });
+    }
+    catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server error');
+    }
+};
