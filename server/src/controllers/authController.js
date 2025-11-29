@@ -1,6 +1,7 @@
 const pool = require('../config/db');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const { OAuth2Client } = require('google-auth-library');
 const nodemailer = require('nodemailer');
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -43,29 +44,46 @@ exports.register = async (req, res) => {
     try {
         const { email, password, full_name } = req.body;
 
+        // Check if email exists
+        const userExists = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+        if (userExists.rows.length > 0 ) {
+            return res.status(400).json({
+                msg: 'Email đã được sử dụng'
+            });
+        }
         // Hash password
         const salt = await bcrypt.genSalt(10);
         const hash = await bcrypt.hash(password, salt);
 
+        // Create verification token
+        const verificationToken = crypto.randomBytes(32).toString('hex');
+
         // Insert user into database
         const newUser = await pool.query(
-            'INSERT INTO users (email, password_hash, full_name) VALUES ($1, $2, $3) RETURNING id, email, role',
-            [email, hash, full_name],
+            'INSERT INTO users (email, password_hash, full_name, role, verification_token, is_verified) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, email, role',
+            [email, hash, full_name, 'user', verificationToken, false]
         );
 
-        // Generate Token
-        const token = jwt.sign(
-            {
-                id: newUser.rows[0].id,
-                role: newUser.rows[0].role,
-            },
-            process.env.JWT_ACCESS_SECRET,
-            {
-                expiresIn: '1h',
-            },
-        );
+        // Send verification email
+        const verifyUrl = `${process.env.CLIENT_URL}/verify-email?token=${verificationToken}`;
+        
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: 'Xác thực tài khoản - Bus Ticket Booking',
+            html: `
+                <h3>Chào mừng bạn đến với Bus Ticket Booking!</h3>
+                <p>Cảm ơn bạn đã đăng ký. Vui lòng click vào link bên dưới để kích hoạt tài khoản:</p>
+                <a href="${verifyUrl}" target="_blank">Kích hoạt tài khoản ngay</a>
+                <p>Nếu bạn không đăng ký tài khoản này, vui lòng bỏ qua email này.</p>
+            `
+        };
 
-        res.status(201).json({ token, user: newUser.rows[0] });
+        await transporter.sendMail(mailOptions);
+
+        res.status(201).json({ 
+            msg: 'Đăng ký thành công! Vui lòng kiểm tra email để kích hoạt tài khoản.' 
+        });
     } catch (err) {
         console.error(err.message);
         res.status(500).send('Server Error');
@@ -82,6 +100,11 @@ exports.login = async (req, res) => {
         ]);
         if (user.rows.length === 0) {
             return res.status(400).json({ msg: 'Invalid Credentials' });
+        }
+
+        // Check if user activated
+        if (!user.rows[0].is_verified && !user.rows[0].google_id) {
+            return res.status(400).json({ msg: 'Tài khoản chưa được kích hoạt. Vui lòng kiểm tra email.' });
         }
 
         // Check password
@@ -179,6 +202,41 @@ exports.googleLogin = async (req, res) => {
     } catch (err) {
         console.error(err.message);
         res.status(401).json({ msg: 'Invalid Google token' });
+    }
+};
+
+exports.verifyEmail = async (req, res) => {
+    try {
+        const { token } = req.query;
+
+        if (!token) {
+            return res.status(400).json({
+                msg: 'Token không hợp lệ'
+            });
+        }
+
+        // Find user with valid token
+        const user = await pool.query(
+            'SELECT * FROM users WHERE verification_token = $1',
+            [token]
+        );
+
+        if (user.rows.length === 0) {
+            return res.status(400).json({ msg: 'Token không hợp lệ hoặc tài khoản đã được kích hoạt' });
+        }
+
+        // Activate account, delete token
+        await pool.query(
+            'UPDATE users SET is_verified = true, verification_token = NULL WHERE id = $1',
+            [user.rows[0].id]
+        );
+
+        res.json({ msg: 'Kích hoạt tài khoản thành công! Bạn có thể đăng nhập ngay bây giờ.' });
+
+    }
+    catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
     }
 };
 
