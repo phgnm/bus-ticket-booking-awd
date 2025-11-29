@@ -6,6 +6,8 @@ CREATE TABLE IF NOT EXISTS users (
     full_name VARCHAR(100),
     role VARCHAR(50) DEFAULT 'user',
     google_id VARCHAR(255),
+    is_verified BOOLEAN DEFAULT FALSE, 
+    verification_token TEXT,           
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
