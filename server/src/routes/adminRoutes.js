@@ -29,7 +29,7 @@ router.post('/admin/buses', adminController.createBus);
 router.delete('/admin/buses/:id', adminController.deleteBus);
 
 // == ROUTES CRUD ==
-router.get('/admin/routes', adminController.getBuses);
+router.get('/admin/routes', adminController.getRoutes);
 router.post('/admin/routes', adminController.createRoute);
 
 // == TRIPS CRUD ==
