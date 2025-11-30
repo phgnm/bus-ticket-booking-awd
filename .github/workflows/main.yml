@@ -43,6 +43,18 @@ jobs:
           run: sleep 5
           shell: bash
 
+        - name: Build DB Schema and Seed Admin
+          env:
+            DATABASE_URL: postgresql://postgres:@BusTicket123@localhost:5432/bus_ticket_dev
+          run: |
+            psql $DATABASE_URL < ./src/models/init.sql
+            
+            ADMIN_PASSWORD_HASH='$2a$10$q09uS.X3z.c5N7j0K3D2I.X3fE7aB9dC0y1v5M2G0fB5z0K8e7l6' 
+            
+            psql $DATABASE_URL -c "INSERT INTO users (email, password_hash, full_name, role, is_verified) VALUES ('admin@vexere.com', '$ADMIN_PASSWORD_HASH', 'System Administrator', 'admin', TRUE) ON CONFLICT (email) DO NOTHING;"
+            
+            psql $DATABASE_URL -c "INSERT INTO users (email, password_hash, full_name, role, is_verified) VALUES ('user1@vexere.com', '$ADMIN_PASSWORD_HASH', 'Test User', 'user', TRUE) ON CONFLICT (email) DO NOTHING;"
+
         - name: Run Tests
           run: npm run test --if-present
           env:
