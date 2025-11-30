@@ -12,6 +12,17 @@ jobs:
         defaults:
             run:
                 working-directory: ./server
+        
+        services:
+          postgres:
+            image: postgres:15
+            env:
+              POSTGRES_USER: postgres
+              POSTGRES_PASSWORD: '@BusTicket123'
+              POSTGRES_DB: bus_ticket_dev
+            ports:
+              - 5432:5432
+            options: --health-cmd "pg_isready" --health-interval 10s --health-timeout 5s --health-retries 5
 
         steps:
         - name: Checkout code
@@ -27,9 +38,24 @@ jobs:
 
         - name: Run Lint
           run: npm run lint
+          
+        - name: Wait for Postgres DB
+          run: sleep 5
+          shell: bash
 
+        - name: Build DB Schema and Seed Admin
+          env:
+            DATABASE_URL: postgresql://postgres:%40BusTicket123@localhost:5432/bus_ticket_dev 
+          run: |
+            psql $DATABASE_URL < ./src/models/init.sql
+            node src/utils/seedAdmin.js
         - name: Run Tests
           run: npm run test --if-present
+          env:
+            DATABASE_URL: postgresql://postgres:%40BusTicket123@localhost:5432/bus_ticket_dev
+            JWT_ACCESS_SECRET: test_access_secret
+            JWT_REFRESH_SECRET: test_refresh_secret
+    
     client-ci:
         runs-on: ubuntu-latest
         defaults:

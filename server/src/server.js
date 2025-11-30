@@ -23,7 +23,7 @@ const createDefaultAdmin = async () => {
 
         // Insert vào DB
         await pool.query(
-            "INSERT INTO users (email, password_hash, full_name, role) VALUES ($1, $2, $3, 'admin')",
+            "INSERT INTO users (email, password_hash, full_name, role, is_verified) VALUES ($1, $2, $3, 'admin', TRUE)",
             [email, passwordHash, fullName],
         );
     }
@@ -35,5 +35,7 @@ app.listen(PORT, async () => {
     console.log(`API Endpoint: http://localhost:${PORT}`);
 
     // Chạy hàm seed sau khi server start
-    await createDefaultAdmin();
+    if (process.env.CI !== 'true') { 
+        await createDefaultAdmin();
+    }
 });

@@ -3,6 +3,9 @@ const cors = require('cors');
 const authRoutes = require('./routes/authRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const cookieParser = require('cookie-parser');
+const tripRoutes = require('./routes/tripRoutes');
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./config/swagger');
 
 const app = express();
 
@@ -15,7 +18,11 @@ app.use(
 app.use(cookieParser());
 app.use(express.json());
 
+// Swagger UI
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
 app.use('/api/auth', authRoutes);
+app.use('/api/trips', tripRoutes);
 app.use('/api', adminRoutes);
 
 module.exports = app;
