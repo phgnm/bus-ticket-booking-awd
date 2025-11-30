@@ -49,7 +49,7 @@ jobs:
           run: |
             psql $DATABASE_URL < ./src/models/init.sql
             
-            ADMIN_PASSWORD_HASH='$2a$10$q09uS.X3z.c5N7j0K3D2I.X3fE7aB9dC0y1v5M2G0fB5z0K8e7l6' 
+            ADMIN_PASSWORD_HASH='"$2b$10$Bg8U/AxThlM70lH9HUdOU.oo7Tyjhwm/Vu0XRDthk8HTPsDGoe6Dq"' 
             
             psql $DATABASE_URL -c "INSERT INTO users (email, password_hash, full_name, role, is_verified) VALUES ('admin@vexere.com', '$ADMIN_PASSWORD_HASH', 'System Administrator', 'admin', TRUE) ON CONFLICT (email) DO NOTHING;"
             
