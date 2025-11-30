@@ -45,7 +45,7 @@ jobs:
 
         - name: Build DB Schema and Seed Admin
           env:
-            DATABASE_URL: postgresql://postgres:@BusTicket123@localhost:5432/bus_ticket_dev
+            DATABASE_URL: postgresql://postgres:%40BusTicket123@localhost:5432/bus_ticket_dev
           run: |
             psql $DATABASE_URL < ./src/models/init.sql
             
@@ -58,7 +58,7 @@ jobs:
         - name: Run Tests
           run: npm run test --if-present
           env:
-            DATABASE_URL: postgresql://postgres:@BusTicket123@localhost:5432/bus_ticket_dev
+            DATABASE_URL: postgresql://postgres:%40BusTicket123@localhost:5432/bus_ticket_dev
     
     client-ci:
         runs-on: ubuntu-latest
