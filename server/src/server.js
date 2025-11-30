@@ -35,5 +35,7 @@ app.listen(PORT, async () => {
     console.log(`API Endpoint: http://localhost:${PORT}`);
 
     // Chạy hàm seed sau khi server start
-    await createDefaultAdmin();
+    if (process.env.CI !== 'true') { 
+        await createDefaultAdmin();
+    }
 });
