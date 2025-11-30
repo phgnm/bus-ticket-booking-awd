@@ -4,12 +4,13 @@ const {
     authenticateJWT,
     authorizeRole,
 } = require('../middlewares/authMiddleware');
+const adminController = require('../controllers/adminController');
+
+router.use(authenticateJWT, authorizeRole('admin'));
 
 // API for admin widget
 router.get(
     '/admin/stats',
-    authenticateJWT,
-    authorizeRole('admin'),
     (req, res) => {
         res.json({
             success: true,
@@ -22,28 +23,16 @@ router.get(
     },
 );
 
-// API for user widget
-router.get(
-    '/user/history',
-    authenticateJWT,
-    authorizeRole(['user', 'admin']),
-    (req, res) => {
-        res.json({
-            success: true,
-            data: [
-                {
-                    trip: 'HCM - Da Lat',
-                    date: '2023-11-20',
-                    status: 'Completed',
-                },
-                {
-                    trip: 'HCM - Vung Tau',
-                    date: '2023-12-01',
-                    status: 'Upcoming',
-                },
-            ],
-        });
-    },
-);
+// == BUSES CRUD ==
+router.get('/admin/buses', adminController.getBuses);
+router.post('/admin/buses', adminController.createBus);
+router.delete('/admin/buses/:id', adminController.deleteBus);
+
+// == ROUTES CRUD ==
+router.get('/admin/routes', adminController.getBuses);
+router.post('/admin/routes', adminController.createRoute);
+
+// == TRIPS CRUD ==
+router.post('/admin/trips', adminController.createTrip);
 
 module.exports = router;
