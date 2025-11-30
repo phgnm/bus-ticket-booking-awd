@@ -21,6 +21,9 @@ const sslConfig = isLocal ? false : { rejectUnauthorized: false };
 const pool = new Pool({
     connectionString: connectionString,
     ssl: sslConfig,
+    max: 20,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 2000,
 });
 
 module.exports = pool;
