@@ -1,25 +1,53 @@
 const pool = require('../config/db');
+const redisClient = require('../config/redis');
 
 exports.searchTrips = async (req, res) => {
     try {
         const {
-            from,  
-            to,          
-            date,          
+            from,
+            to,
+            date,
             page = 1,
             limit = 10,
-            sort_by = 'time', 
-            order = 'asc',   
+            sort_by = 'time',
+            order = 'asc',
             min_price,
             max_price,
             bus_type,
-            amenities         
+            amenities,
         } = req.query;
 
         if (!from || !to || !date) {
             return res.status(400).json({
-                msg: 'Vui lòng cung cấp điểm đi, điểm đến và ngày khởi hành'
+                msg: 'Vui lòng cung cấp điểm đi, điểm đến và ngày khởi hành',
             });
+        }
+
+        // Cache Key
+        const cacheKey = `trips:${JSON.stringify({
+            from,
+            to,
+            date,
+            page,
+            limit,
+            sort_by,
+            order,
+            min_price,
+            max_price,
+            bus_type,
+            amenities,
+        })}`;
+
+        // Check Redis Cache
+        if (redisClient.isOpen) {
+            try {
+                const cachedData = await redisClient.get(cacheKey);
+                if (cachedData) {
+                    return res.json(JSON.parse(cachedData));
+                }
+            } catch (err) {
+                console.error('Redis cache error:', err);
+            }
         }
 
         // join clause to connect tables
@@ -43,7 +71,7 @@ exports.searchTrips = async (req, res) => {
             `r.route_from = $1`,
             `r.route_to = $2`,
             `DATE(t.departure_time) = $3`,
-            `(b.seat_capacity - COALESCE(booked.sold_tickets, 0)) > 0`
+            `(b.seat_capacity - COALESCE(booked.sold_tickets, 0)) > 0`,
         ];
 
         // queryParams array
@@ -68,7 +96,9 @@ exports.searchTrips = async (req, res) => {
 
         // bus amenities filter
         if (amenities) {
-            const amenitiesArray = Array.isArray(amenities) ? amenities : amenities.split(',');
+            const amenitiesArray = Array.isArray(amenities)
+                ? amenities
+                : amenities.split(',');
             whereConditions.push(`b.amenities @> $${paramIndex++}::jsonb`);
             queryParams.push(JSON.stringify(amenitiesArray));
         }
@@ -83,7 +113,7 @@ exports.searchTrips = async (req, res) => {
         let sortColumn = 't.departure_time';
         if (sort_by === 'price') sortColumn = 'r.price_base';
         if (sort_by === 'duration') sortColumn = 'r.estimated_duration';
-        const sortOrder = order.toLowerCase() === 'desc' ? 'DESC' : 'ASC'
+        const sortOrder = order.toLowerCase() === 'desc' ? 'DESC' : 'ASC';
 
         const limitParamIndex = paramIndex++;
         const offsetParamIndex = paramIndex++;
@@ -116,26 +146,42 @@ exports.searchTrips = async (req, res) => {
 
         const [countResult, dataResult] = await Promise.all([
             pool.query(countSql, queryParams),
-            pool.query(dataSql, dataParams)
+            pool.query(dataSql, dataParams),
         ]);
 
         // return result
         const totalTrips = parseInt(countResult.rows[0].total);
         const totalPages = Math.ceil(totalTrips / limit);
 
-        res.json({
+        const responseData = {
             success: true,
             pagination: {
                 page: parseInt(page),
                 limit: parseInt(limit),
                 total_trips: totalTrips,
-                total_pages: totalPages
+                total_pages: totalPages,
             },
-            data: dataResult.rows
-        });
-    }
-    catch (err) {
+            data: dataResult.rows,
+        };
+
+        // Set Cache
+        if (redisClient.isOpen) {
+            try {
+                await redisClient.set(
+                    cacheKey,
+                    JSON.stringify(responseData),
+                    {
+                        EX: 300, // 5 minutes
+                    },
+                );
+            } catch (err) {
+                console.error('Redis cache set error:', err);
+            }
+        }
+
+        res.json(responseData);
+    } catch (err) {
         console.error(err.message);
         res.status(500).json({ msg: 'Lỗi server khi tìm kiếm chuyến xe' });
     }
-}
+};
