@@ -24,7 +24,7 @@ exports.createBus = async (req, res) => {
         seat_capacity,
         type,
         seat_layout,
-        amenitites,
+        amenities,
         images
     } = req.body;
 
@@ -153,7 +153,7 @@ exports.createTrip = async (req, res) => {
         const {
             route_id,
             bus_id,
-            departute_time
+            departure_time
         } = req.body;
 
         // take information about route
@@ -166,7 +166,7 @@ exports.createTrip = async (req, res) => {
         const durationMinutes = routeData.rows[0].estimated_duration;
 
         // calculate new estimated time
-        const newStart = new Date(departute_time);
+        const newStart = new Date(departure_time);
         const newEnd = new Date(newStart.getTime() + durationMinutes * 60000);
 
         // conflict check
@@ -196,7 +196,7 @@ exports.createTrip = async (req, res) => {
         const result = await pool.query(
             `INSERT INTO trips (route_id, bus_id, departure_time, status)
              VALUES ($1, $2, $3, 'SCHEDULED') RETURNING *`,
-            [route_id, bus_id, departute_time]
+            [route_id, bus_id, newStart]
         );
 
         res.status(201).json({
