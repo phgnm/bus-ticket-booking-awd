@@ -181,3 +181,10 @@ INSERT INTO trips (route_id, bus_id, departure_time, status) VALUES
 -- Xe Thành Bưởi chạy tuyến HCM -> Đà Lạt ngày mốt lúc 23:00
 INSERT INTO trips (route_id, bus_id, departure_time, status) VALUES 
 (1, 2, NOW() + INTERVAL '2 days' + INTERVAL '23 hours' - CAST(NOW() AS TIME), 'SCHEDULED');
+
+-- =========== DATABASE INDEXING ===========
+CREATE INDEX IF NOT EXISTS idx_routes_from_to ON routes(route_from, route_to);
+
+CREATE INDEX IF NOT EXISTS idx_trips_departure_date ON trips ((DATE(departure_time)));
+
+CREATE INDEX IF NOT EXISTS idx_bookings_trip_id ON bookings(trip_id);
