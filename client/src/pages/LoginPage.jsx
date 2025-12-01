@@ -6,8 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { GoogleLogin } from '@react-oauth/google';
-import { motion } from 'framer-motion'; // Import animation
-import { BusFront } from 'lucide-react'; // Icon
+import { motion } from 'framer-motion';
+import { BusFront } from 'lucide-react';
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
@@ -48,9 +48,7 @@ export default function LoginPage() {
             {/* Cột trái: Trang trí */}
             <div className="hidden bg-muted lg:block relative h-full overflow-hidden">
                 <div className="absolute inset-0 bg-zinc-900" />
-                {/* Background Gradient động */}
                 <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 opacity-90" />
-
                 <div className="relative z-20 flex items-center text-lg font-medium text-white p-10">
                     <BusFront className="mr-2 h-6 w-6" />
                     VexereClone Inc
@@ -90,13 +88,14 @@ export default function LoginPage() {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="name@example.com"
-                                className="h-11" // Input cao hơn chút cho đẹp
+                                className="h-11"
                             />
                         </div>
                         <div className="grid gap-2">
                             <div className="flex items-center justify-between">
                                 <Label htmlFor="password">Mật khẩu</Label>
-                                <Link to="#" className="text-sm font-medium text-primary hover:underline">
+                                {/* [UPDATED] Link đến trang quên mật khẩu */}
+                                <Link to="/forgot-password" className="text-sm font-medium text-indigo-600 hover:text-indigo-500 hover:underline">
                                     Quên mật khẩu?
                                 </Link>
                             </div>
@@ -140,11 +139,11 @@ export default function LoginPage() {
                         <GoogleLogin
                             onSuccess={handleGoogleSuccess}
                             onError={() => setError('Đăng nhập Google thất bại')}
-                            useOneTap
+                            useOneTap={false} // [UPDATED] Tắt OneTap để tránh lỗi FedCM ở dev mode
                             theme="outline"
                             size="large"
                             width="100%"
-                            shape="pill" // Bo tròn nút Google
+                            shape="pill"
                         />
                     </div>
 
