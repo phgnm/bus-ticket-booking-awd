@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom'; // Thêm useNavigate
 import api from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { motion } from 'framer-motion';
-import { Bus, CheckCircle2, Mail } from 'lucide-react';
+import { Bus, CheckCircle2 } from 'lucide-react';
 
 export default function RegisterPage() {
     const [formData, setFormData] = useState({
@@ -15,7 +15,7 @@ export default function RegisterPage() {
         confirmPassword: ''
     });
     const [error, setError] = useState('');
-    const [successMsg, setSuccessMsg] = useState(''); // State lưu thông báo thành công
+    const navigate = useNavigate(); // Hook chuyển hướng
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.id]: e.target.value });
@@ -24,28 +24,25 @@ export default function RegisterPage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
-        setSuccessMsg('');
 
         if (formData.password !== formData.confirmPassword) {
             return setError('Mật khẩu xác nhận không khớp');
         }
 
         try {
-            const res = await api.post('/auth/register', {
+            await api.post('/auth/register', {
                 email: formData.email,
                 password: formData.password,
                 full_name: formData.full_name
             });
 
-            setSuccessMsg(res.data.msg);
+            // Chuyển hướng sang trang VerifyEmail và gửi kèm email để hiển thị
+            navigate('/verify-email', { state: { email: formData.email } });
             
         } catch (err) {
-            // [CẬP NHẬT] Xử lý hiển thị cả lỗi logic (msg) và lỗi validation (errors)
             if (err.response?.data?.errors && Array.isArray(err.response.data.errors)) {
-                // Nếu có danh sách lỗi validation, nối chúng lại
                 setError(err.response.data.errors.join(', '));
             } else {
-                // Nếu là lỗi logic (ví dụ: Email đã tồn tại)
                 setError(err.response?.data?.msg || 'Đăng ký thất bại. Vui lòng thử lại.');
             }
         }
@@ -53,7 +50,7 @@ export default function RegisterPage() {
 
     return (
         <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2 xl:min-h-[800px]">
-            {/* Cột trái: Giữ nguyên như cũ */}
+            {/* Cột trái: Giữ nguyên */}
             <div className="hidden bg-muted lg:block relative h-full overflow-hidden">
                 <div className="absolute inset-0 bg-zinc-900" />
                 <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=2021&auto=format&fit=crop')] bg-cover bg-center opacity-50" />
@@ -90,77 +87,53 @@ export default function RegisterPage() {
                     transition={{ duration: 0.5 }}
                     className="mx-auto grid w-full max-w-[450px] gap-6"
                 >
-                    {/* Logic hiển thị: Nếu thành công thì hiện thông báo, ngược lại hiện Form */}
-                    {successMsg ? (
-                        <div className="text-center space-y-6">
-                            <div className="flex justify-center">
-                                <div className="p-4 bg-green-100 rounded-full">
-                                    <Mail className="h-12 w-12 text-green-600" />
-                                </div>
+                    <div className="grid gap-2 text-center">
+                        <h1 className="text-3xl font-bold tracking-tight">Tạo tài khoản mới</h1>
+                        <p className="text-balance text-muted-foreground">
+                            Nhập thông tin cá nhân của bạn để bắt đầu
+                        </p>
+                    </div>
+
+                    <form onSubmit={handleSubmit} className="grid gap-4">
+                        <div className="grid gap-2">
+                            <Label htmlFor="full_name">Họ và tên</Label>
+                            <Input id="full_name" required value={formData.full_name} onChange={handleChange} placeholder="Nguyễn Văn A" className="h-11" />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="email">Email</Label>
+                            <Input id="email" type="email" required value={formData.email} onChange={handleChange} placeholder="name@example.com" className="h-11" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="grid gap-2">
+                                <Label htmlFor="password">Mật khẩu</Label>
+                                <Input id="password" type="password" required value={formData.password} onChange={handleChange} className="h-11" />
                             </div>
-                            <h1 className="text-3xl font-bold tracking-tight text-green-600">Đăng ký thành công!</h1>
-                            <p className="text-lg text-muted-foreground">
-                                {successMsg}
-                            </p>
-                            <div className="pt-4">
-                                <Link to="/login">
-                                    <Button variant="outline" className="w-full h-11">
-                                        Quay lại trang đăng nhập
-                                    </Button>
-                                </Link>
+                            <div className="grid gap-2">
+                                <Label htmlFor="confirmPassword">Xác nhận</Label>
+                                <Input id="confirmPassword" type="password" required value={formData.confirmPassword} onChange={handleChange} className="h-11" />
                             </div>
                         </div>
-                    ) : (
-                        <>
-                            <div className="grid gap-2 text-center">
-                                <h1 className="text-3xl font-bold tracking-tight">Tạo tài khoản mới</h1>
-                                <p className="text-balance text-muted-foreground">
-                                    Nhập thông tin cá nhân của bạn để bắt đầu
-                                </p>
-                            </div>
 
-                            <form onSubmit={handleSubmit} className="grid gap-4">
-                                <div className="grid gap-2">
-                                    <Label htmlFor="full_name">Họ và tên</Label>
-                                    <Input id="full_name" required value={formData.full_name} onChange={handleChange} placeholder="Nguyễn Văn A" className="h-11" />
-                                </div>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="email">Email</Label>
-                                    <Input id="email" type="email" required value={formData.email} onChange={handleChange} placeholder="name@example.com" className="h-11" />
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="password">Mật khẩu</Label>
-                                        <Input id="password" type="password" required value={formData.password} onChange={handleChange} className="h-11" />
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="confirmPassword">Xác nhận</Label>
-                                        <Input id="confirmPassword" type="password" required value={formData.confirmPassword} onChange={handleChange} className="h-11" />
-                                    </div>
-                                </div>
+                        {error && (
+                            <motion.p
+                                initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                                className="text-sm text-red-500 text-center bg-red-50 py-2 rounded border border-red-100"
+                            >
+                                {error}
+                            </motion.p>
+                        )}
 
-                                {error && (
-                                    <motion.p
-                                        initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                                        className="text-sm text-red-500 text-center bg-red-50 py-2 rounded border border-red-100"
-                                    >
-                                        {error}
-                                    </motion.p>
-                                )}
+                        <Button type="submit" className="w-full h-11 text-md font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 border-0 shadow-md hover:shadow-lg transition-all">
+                            Đăng ký tài khoản
+                        </Button>
+                    </form>
 
-                                <Button type="submit" className="w-full h-11 text-md font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 border-0 shadow-md hover:shadow-lg transition-all">
-                                    Đăng ký tài khoản
-                                </Button>
-                            </form>
-
-                            <div className="mt-4 text-center text-sm">
-                                Đã có tài khoản?{' '}
-                                <Link to="/login" className="font-semibold text-indigo-600 hover:text-indigo-500 hover:underline">
-                                    Đăng nhập ngay
-                                </Link>
-                            </div>
-                        </>
-                    )}
+                    <div className="mt-4 text-center text-sm">
+                        Đã có tài khoản?{' '}
+                        <Link to="/login" className="font-semibold text-indigo-600 hover:text-indigo-500 hover:underline">
+                            Đăng nhập ngay
+                        </Link>
+                    </div>
                 </motion.div>
             </div>
         </div>
