@@ -5,15 +5,19 @@ const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
-    const [token, setToken] = useState(localStorage.getItem('token'));
+    // [FIX] Khởi tạo state từ sessionStorage
+    const [token, setToken] = useState(sessionStorage.getItem('token'));
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Khi load lại trang, kiểm tra token và decode thông tin user (hoặc gọi API verify nếu có)
-        // Ở đây ta giả định lưu user info cơ bản vào localStorage để persistence đơn giản
-        const storedUser = localStorage.getItem('user');
+        // [FIX] Kiểm tra user từ sessionStorage khi reload trang
+        const storedUser = sessionStorage.getItem('user');
         if (token && storedUser) {
-            setUser(JSON.parse(storedUser));
+            try {
+                setUser(JSON.parse(storedUser));
+            } catch (e) {
+                console.error("Error parsing user data", e);
+            }
         }
         setLoading(false);
     }, [token]);
@@ -21,8 +25,9 @@ export const AuthProvider = ({ children }) => {
     const login = (newToken, userData) => {
         setToken(newToken);
         setUser(userData);
-        localStorage.setItem('token', newToken);
-        localStorage.setItem('user', JSON.stringify(userData));
+        // [FIX] Lưu vào sessionStorage (mất khi đóng tab)
+        sessionStorage.setItem('token', newToken);
+        sessionStorage.setItem('user', JSON.stringify(userData));
     };
 
     const logout = async () => {
@@ -33,9 +38,11 @@ export const AuthProvider = ({ children }) => {
         } finally {
             setToken(null);
             setUser(null);
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            window.location.href = '/';
+            // [FIX] Xóa khỏi sessionStorage
+            sessionStorage.removeItem('token');
+            sessionStorage.removeItem('user');
+            // Dùng window.location để clear state sạch sẽ và redirect về home
+            window.location.href = '/login';
         }
     };
 
