@@ -7,14 +7,15 @@ import RegisterPage from '@/pages/RegisterPage';
 import VerifyEmailPage from '@/pages/VerifyEmailPage';
 import ForgotPasswordPage from '@/pages/ForgotPasswordPage';
 import ResetPasswordPage from '@/pages/ResetPasswordPage';
+import TripSearchPage from '@/pages/TripSearchPage'; // [NEW] Import trang tìm kiếm
 import ProtectedRoute from '@/components/ProtectedRoute';
 
 // Admin Components
-import AdminLayout from '@/components/AdminLayout'; // [NEW]
+import AdminLayout from '@/components/AdminLayout';
 import AdminDashboard from '@/pages/AdminDashboard';
-import BusManagement from '@/pages/admin/BusManagement'; // [NEW]
-import RouteManagement from '@/pages/admin/RouteManagement'; // [NEW]
-import TripManagement from '@/pages/admin/TripManagement'; // [NEW]
+import BusManagement from '@/pages/admin/BusManagement';
+import RouteManagement from '@/pages/admin/RouteManagement';
+import TripManagement from '@/pages/admin/TripManagement';
 
 import './App.css';
 
@@ -35,6 +36,7 @@ function App() {
                   <Route path="/verify-email" element={<VerifyEmailPage />} />
                   <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                   <Route path="/reset-password" element={<ResetPasswordPage />} />
+                  <Route path="/search" element={<TripSearchPage />} /> {/* [NEW] Route hiển thị nội dung */}
                 </Routes>
               </main>
             </div>
@@ -46,10 +48,10 @@ function App() {
             <Route path="/verify-email" element={<VerifyEmailPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/search" element={<TripSearchPage />} /> {/* [NEW] Route giữ layout */}
           </Route>
 
           {/* === ADMIN ROUTES (Layout Riêng) === */}
-          {/* Task B.4: Sử dụng ProtectedRoute và AdminLayout */}
           <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
             <Route path="/admin" element={<AdminLayout />}>
               {/* Redirect /admin -> /admin/dashboard */}
