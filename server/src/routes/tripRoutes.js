@@ -2,6 +2,9 @@ const express = require('express');
 const router = express.Router();
 const tripController = require('../controllers/tripController');
 
+const { authenticateJWT } = require('../middlewares/authMiddleware');
+const { optionalAuthenticateJWT } = require('../middlewares/authMiddleware');
+
 /**
  * @swagger
  * tags:
@@ -152,5 +155,133 @@ const tripController = require('../controllers/tripController');
  *         description: Server error
  */
 router.get('/', tripController.searchTrips);
+
+/**
+ * @swagger
+ * /trips/{id}/seat-status:
+ *   get:
+ *     summary: Get real-time seat status (Sold & Locked)
+ *     tags: [Trips]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Seat status
+ */
+router.get('/:id/seat-status', tripController.getSeatStatus);
+
+
+/**
+ * @swagger
+ * /trips/{id}/lock-seat:
+ *   post:
+ *     summary: Lock a seat temporarily (Redis)
+ *     tags: [Trips]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               seat_number:
+ *                 type: string
+ *               guest_id:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Seat locked successfully
+ *       409:
+ *         description: Seat already sold or locked
+ */
+router.post(
+  '/:id/lock-seat',
+  (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if (authHeader) return authenticateJWT(req, res, next);
+    next();
+  },
+  tripController.lockSeat
+);
+
+
+/**
+ * @swagger
+ * /trips/{id}/unlock-seat:
+ *   post:
+ *     summary: Unlock a seat
+ *     tags: [Trips]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               seat_number:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Seat unlocked
+ */
+router.post('/:id/unlock-seat', tripController.unlockSeat);
+
+/**
+ * @swagger
+ * /trips/{id}/booking:
+ *   post:
+ *     summary: Create a new booking (Transaction)
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               seats:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               guest_info:
+ *                 type: object
+ *                 properties:
+ *                   name:
+ *                     type: string
+ *                   email:
+ *                     type: string
+ *                   phone:
+ *                     type: string
+ *                   guest_id:
+ *                     type: string
+ *     responses:
+ *       201:
+ *         description: Booking created successfully
+ */
+router.post('/:id/booking', optionalAuthenticateJWT, tripController.createBooking);
 
 module.exports = router;
