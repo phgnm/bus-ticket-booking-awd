@@ -3,6 +3,8 @@ const router = express.Router();
 const tripController = require('../controllers/tripController');
 
 const { authenticateJWT } = require('../middlewares/authMiddleware');
+const { optionalAuthenticateJWT } = require('../middlewares/authMiddleware');
+
 /**
  * @swagger
  * tags:
@@ -239,5 +241,47 @@ router.post(
  *         description: Seat unlocked
  */
 router.post('/:id/unlock-seat', tripController.unlockSeat);
+
+/**
+ * @swagger
+ * /trips/{id}/booking:
+ *   post:
+ *     summary: Create a new booking (Transaction)
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               seats:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               guest_info:
+ *                 type: object
+ *                 properties:
+ *                   name:
+ *                     type: string
+ *                   email:
+ *                     type: string
+ *                   phone:
+ *                     type: string
+ *                   guest_id:
+ *                     type: string
+ *     responses:
+ *       201:
+ *         description: Booking created successfully
+ */
+router.post('/:id/booking', optionalAuthenticateJWT, tripController.createBooking);
 
 module.exports = router;

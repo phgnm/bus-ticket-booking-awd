@@ -1,5 +1,6 @@
 const pool = require('../config/db');
 const redisClient = require('../config/redis');
+const { generateBookingCode } = require('../utils/bookingCode');
 
 exports.searchTrips = async (req, res) => {
     try {
@@ -290,3 +291,131 @@ exports.unlockSeat = async (req, res) => {
     }
 };
 
+exports.createBooking = async (req, res) => {
+    const client = await pool.connect();
+
+    try {
+        const { id } = req.params; 
+        const { seats, guest_info, payment_method } = req.body;
+
+        // identify user
+        let userId = null;
+        let redisOwnerId = null;
+        let contactEmail = '';
+        let contactName = '';
+        let contactPhone = '';
+
+        if (req.user) {
+            // case: logged in user
+            userId = req.user.id;
+            redisOwnerId = `user:${userId}`;
+
+            // take info from users table
+            const userRes = await client.query('SELECT email, full_name, phone_number FROM users WHERE id = $1', [userId]);
+            const userData = userRes.rows[0];
+            contactEmail = userData.email;
+            contactName = userData.full_name;
+            contactPhone = userData.phone_number || guest_info?.phone;
+        } else {
+            // case: guest
+            if (!guest_info || !guest_info.email || !guest_info.guest_id) {
+                return res.status(400).json({ msg: 'Thiếu thông tin khách hàng (Email/GuestID)' });
+            }
+            redisOwnerId = guest_info.guest_id;
+            contactEmail = guest_info.email;
+            contactName = guest_info.name;
+            contactPhone = guest_info.phone;
+        }
+
+        // take ticket price from db
+        const tripQuery = `
+            SELECT r.price_base 
+            FROM trips t
+            JOIN routes r ON t.route_id = r.id
+            WHERE t.id = $1
+        `;
+        const tripRes = await client.query(tripQuery, [id]);
+        
+        if (tripRes.rows.length === 0) 
+            return res.status(404).json({ 
+                msg: 'Chuyến xe không tồn tại' 
+            });
+            
+        const pricePerTicket = parseFloat(tripRes.rows[0].price_base);
+        const totalPrice = pricePerTicket;
+
+        // start transaction
+        await client.query('BEGIN');
+
+        const bookingCode = generateBookingCode();
+        const bookedSeats = [];
+
+        // loop through each seat to handle
+        for (const seatNum of seats) {
+            // check redis lock
+            const lockKey = `lock:trip:${id}:seat:${seatNum}`;
+            const lockOwner = await redisClient.get(lockKey);
+
+            if (!lockOwner) {
+                throw new Error(`Ghế ${seatNum} đã hết thời gian giữ chỗ (Hết hạn). Vui lòng chọn lại.`);
+            }
+            if (lockOwner !== redisOwnerId) {
+                throw new Error(`Ghế ${seatNum} đang được giữ bởi người khác.`);
+            }
+
+            // check db once more
+            const checkSold = await client.query(
+                "SELECT * FROM bookings WHERE trip_id = $1 AND seat_number = $2 AND booking_status != 'CANCELLED'",
+                [id, seatNum]
+            );
+            if (checkSold.rows.length > 0) {
+                throw new Error(`Ghế ${seatNum} đã được bán trước do91`);
+            }
+
+            // insert booking
+            const insertQuery = `
+                INSERT INTO bookings (
+                    trip_id, user_id, passenger_name, passenger_phone, 
+                    seat_number, total_price, booking_code, contact_email, booking_status
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'PENDING')
+                RETURNING id;
+            `;
+            await client.query(insertQuery, [
+                id, userId, contactName, contactPhone, 
+                seatNum, totalPrice, bookingCode, contactEmail
+            ]);
+
+            bookedSeats.push(seatNum);
+        }
+
+        // commit transaction
+        await client.query('COMMIT');
+
+        // cleanup redis
+        seats.forEach(seat => {
+            redisClient.del(`lock:trip:${id}:seat:${seat}`);
+        });
+
+        // TODO: trigger email
+
+        res.status(201).json({
+            success: true,
+            msg: 'Đặt vé thành công',
+            booking_code: bookingCode,
+            seats: bookedSeats,
+            total_amount: pricePerTicket * seats.length
+        });
+    }
+    catch (err) {
+        await client.query('ROLLBACK');
+        console.error('Booking Error:', err.message);
+    
+        res.status(400).json({ 
+            success: false, 
+            msg: err.message || 'Lỗi xử lý đặt vé' 
+        });
+    } 
+    finally {
+        client.release(); 
+    }
+}
