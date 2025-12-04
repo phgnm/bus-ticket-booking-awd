@@ -187,3 +187,106 @@ exports.searchTrips = async (req, res) => {
         res.status(500).json({ msg: 'Lỗi server khi tìm kiếm chuyến xe' });
     }
 };
+
+exports.getSeatStatus = async (req, res) => {
+    try{
+        const { id } = req.params;
+
+        // take sold seat info from db
+        const soldQuery = `
+            SELECT seat_number 
+            FROM bookings 
+            WHERE trip_id = $1 AND booking_status != 'CANCELLED'
+        `;
+        const soldResult = await pool.query(soldQuery, [id]);
+        const soldSeats = soldResult.rows.map(row => row.seat_number);
+
+        // take locked seat list from redis
+        const keys = await redisClient.keys(`lock:trip:${id}:seat:*`);
+
+        const lockedSeats = keys.map(key => {
+            return key.split(':').pop();
+        });
+
+        res.json({
+            success: true,
+            trip_id: id,
+            sold_seats: soldSeats,
+            locked_seats: lockedSeats
+        });
+        
+    }
+    catch (err) {
+        console.error(err);
+        res.status(500).json({ msg: 'Lỗi lấy trạng thái ghế' });
+    }
+};
+
+exports.lockSeat = async (req, res) => {
+    try {
+        const { id } = req.params; // trip_id
+        const { seat_number } = req.body;
+        const userId = req.user ? `user:${req.user.id}` : (req.body.guest_id || 'unknown');
+
+        if (!seat_number) {
+            return res.status(400).json({ msg: 'Thiếu số ghế' });
+        }
+
+        // check db if it's sold
+        const checkSold = await pool.query(
+            "SELECT * FROM bookings WHERE trip_id = $1 AND seat_number = $2 AND booking_status != 'CANCELLED'",
+            [id, seat_number]
+        );
+
+        if (checkSold.rows.length > 0) {
+            return res.status(409).json({
+                msg: 'Ghế này đã được bán!'
+            });
+        }
+
+        // check & lock redis
+        const key = `lock:trip:${id}:seat:${seat_number}`;
+        
+        const result = await redisClient.set(key, userId, {
+            NX: true,
+            EX: 600 
+        });
+
+        if (!result) {
+            return res.status(409).json({
+                msg: 'Ghế đang được người khác giữ!'
+            });
+        }
+
+        res.json({
+            success: true,
+            mesg: `Đã giữ ghế ${seat_number} trong 10 phút`
+        });
+    }
+    catch (err) {
+        console.error(err);
+        res.status(500).json({ msg: 'Lỗi server khi giữ ghế' });
+    }
+};
+
+exports.unlockSeat = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { seat_number } = req.body;
+
+        // check whether the unlocking and locking person the same one
+        const key = `lock:trip:${id}:seat:${seat_number}`;
+        
+        await redisClient.del(key);
+
+        res.json({
+            success: true,
+            msg: `Đã hủy giữ ghế ${seat_number}`
+        });
+    }
+    catch (err) {
+        console.error(err);
+        res.status(500).json({ msg: 'Lỗi server khi hủy giữ ghế' });
+    }
+};
+
