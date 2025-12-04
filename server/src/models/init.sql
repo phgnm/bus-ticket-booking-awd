@@ -113,6 +113,9 @@ CREATE TABLE IF NOT EXISTS bookings (
     seat_number VARCHAR(10) NOT NULL,
     total_price DECIMAL(10, 2) NOT NULL, 
     booking_status VARCHAR(20) DEFAULT 'PENDING_PAYMENT', 
+    booking_code VARCHAR(20) NOT NULL,
+    contact_email VARCHAR(255) NOT NULL,
+    transaction_id VARCHAR(100),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(trip_id, seat_number) 
 );
@@ -182,9 +185,19 @@ INSERT INTO trips (route_id, bus_id, departure_time, status) VALUES
 INSERT INTO trips (route_id, bus_id, departure_time, status) VALUES 
 (1, 2, NOW() + INTERVAL '2 days' + INTERVAL '23 hours' - CAST(NOW() AS TIME), 'SCHEDULED');
 
+-- === 7. INSERT BOOKINGS (Cần cập nhật format mới nếu muốn seed) ===
+-- Ví dụ: User đặt 1 ghế A1
+INSERT INTO bookings (trip_id, passenger_name, passenger_phone, seat_number, total_price, booking_code, contact_email, booking_status) 
+VALUES 
+((SELECT id FROM trips LIMIT 1), 'Nguyen Van A', '0909123456', 'A01', 300000, 'SEED-12345', 'user1@example.com', 'PAID');
+
 -- =========== DATABASE INDEXING ===========
 CREATE INDEX IF NOT EXISTS idx_routes_from_to ON routes(route_from, route_to);
 
 CREATE INDEX IF NOT EXISTS idx_trips_departure_date ON trips ((DATE(departure_time)));
 
 CREATE INDEX IF NOT EXISTS idx_bookings_trip_id ON bookings(trip_id);
+
+CREATE INDEX IF NOT EXISTS idx_bookings_lookup ON bookings(booking_code, contact_email);
+
+CREATE INDEX IF NOT EXISTS idx_bookings_code ON bookings(booking_code);
