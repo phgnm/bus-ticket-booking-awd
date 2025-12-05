@@ -1,6 +1,8 @@
 const pool = require('../config/db');
 const redisClient = require('../config/redis');
 const { generateBookingCode } = require('../utils/bookingCode');
+const emailService = require('../utils/emailService');
+const { generateTicketPDF } = require('../utils/ticketGenerator');
 
 exports.searchTrips = async (req, res) => {
     try {
@@ -396,7 +398,45 @@ exports.createBooking = async (req, res) => {
             redisClient.del(`lock:trip:${id}:seat:${seat}`);
         });
 
-        // TODO: trigger email
+        try {
+            // take trips info
+            const tripInfoQuery = `
+                SELECT lf.name as from_loc, lt.name as to_loc, b.license_plate, t.departure_time
+                FROM trips t
+                JOIN routes r ON t.route_id = r.id
+                JOIN locations lf ON r.route_from = lf.id
+                JOIN locations lt ON r.route_to = lt.id
+                JOIN buses b ON t.bus_id = b.id
+                WHERE t.id = $1
+            `;
+            const tripInfoRes = await client.query(tripInfoQuery, [id]);
+            const tripInfo = tripInfoRes.rows[0];
+
+            // gather data
+            const fullTicketData = {
+                booking_code: bookingCode,
+                seats: seats,
+                from: tripInfo.from_loc,
+                to: tripInfo.to_loc,
+                departure_time: tripInfo.departure_time,
+                license_plate: tripInfo.license_plate,
+                passenger_name: contactName,
+                passenger_phone: contactPhone,
+                contact_email: contactEmail,
+                total_price: pricePerTicket * seats.length
+            };
+
+            // create pdf
+            const pdfBuffer = await generateTicketPDF(fullTicketData);
+
+            //call mail sending service:
+            emailService.sendTicketEmail(contactEmail, bookingCode, pdfBuffer, fullTicketData)
+                .catch(err => console.error("Background Email Error:", err));
+        }
+        catch (postProcessErr) {
+            console.error('Lỗi hậu xử lý (PDF/Email):', postProcessErr);
+            // Không return lỗi vì booking đã thành công (Commit rồi)
+        }
 
         res.status(201).json({
             success: true,
