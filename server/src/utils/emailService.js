@@ -1,6 +1,6 @@
 const transporter = require('../config/mail');
 
-const sendTicketEmail = async (toEmail, generateBookingCode, ticketPdfBuffer, tripInfo) => {
+const sendTicketEmail = async (toEmail, bookingCode, ticketPdfBuffer, tripInfo) => {
     try {
         const mailOptions = {
             from: '"Vexere Bus Lines" <noreply@vexerebus.com>', // Tên hiển thị
