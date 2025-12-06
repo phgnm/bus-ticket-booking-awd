@@ -298,7 +298,7 @@ exports.createBooking = async (req, res) => {
 
     try {
         const { id } = req.params; 
-        const { seats, guest_info, payment_method } = req.body;
+        const { seats, guest_info } = req.body;
 
         // identify user
         let userId = null;

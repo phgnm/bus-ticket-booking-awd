@@ -2,7 +2,7 @@ const PDFDocument = require('pdfkit');
 const QRCode = require('qrcode');
 
 const generateTicketPDF = async (bookingData) => {
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
         try {
             const doc = new PDFDocument({ size: 'A4', margin: 50 });
             const buffers = [];
@@ -21,45 +21,45 @@ const generateTicketPDF = async (bookingData) => {
             doc.moveDown();
 
             // qr code
-            const qrCodeDataUrl = await QRCode.toDataURL(bookingData.booking_code);
-            doc.image(qrCodeDataUrl, (doc.page.width - 100) / 2, 130, { fit: [100, 100] });
-            
-            doc.moveDown(6);
+            QRCode.toDataURL(bookingData.booking_code).then(qrCodeDataUrl => {
+                doc.image(qrCodeDataUrl, (doc.page.width - 100) / 2, 130, { fit: [100, 100] });
 
-            // detail info
-            const startY = doc.y;
-            
-            doc.fontSize(14).font('Helvetica-Bold').text(`MA VE / BOOKING CODE: ${bookingData.booking_code}`, { align: 'center', color: '#E11D48' });
-            doc.moveDown();
+                doc.moveDown(6);
 
-            doc.font('Helvetica').fontSize(12).fillColor('black');
+                // detail info
 
-            // helper to print line
-            const printLine = (label, value) => {
-                doc.font('Helvetica-Bold').text(`${label}: `, { continued: true });
-                doc.font('Helvetica').text(value);
-                doc.moveDown(0.5);
-            };
+                doc.fontSize(14).font('Helvetica-Bold').text(`MA VE / BOOKING CODE: ${bookingData.booking_code}`, { align: 'center', color: '#E11D48' });
+                doc.moveDown();
 
-            printLine('Hanh khach / Passenger', bookingData.passenger_name);
-            printLine('So dien thoai / Phone', bookingData.passenger_phone);
-            printLine('Email', bookingData.contact_email);
-            doc.moveDown();
-            
-            printLine('Chuyen / Route', `${bookingData.from} - ${bookingData.to}`);
-            printLine('Gio khoi hanh / Departure', new Date(bookingData.departure_time).toLocaleString('vi-VN'));
-            printLine('Bien so xe / Bus Plate', bookingData.license_plate);
-            doc.moveDown();
+                doc.font('Helvetica').fontSize(12).fillColor('black');
 
-            printLine('Ghe / Seat(s)', bookingData.seats.join(', '));
-            printLine('Tong tien / Total Amount', `${parseInt(bookingData.total_price).toLocaleString('vi-VN')} VND`);
+                // helper to print line
+                const printLine = (label, value) => {
+                    doc.font('Helvetica-Bold').text(`${label}: `, { continued: true });
+                    doc.font('Helvetica').text(value);
+                    doc.moveDown(0.5);
+                };
 
-            // footer
-            doc.moveDown(2);
-            doc.fontSize(10).text('Vui long dua ma ve nay cho nhan vien nha xe de len xe.', { align: 'center', oblique: true });
-            doc.text('Please show this ticket to the bus attendant for boarding.', { align: 'center', oblique: true });
+                printLine('Hanh khach / Passenger', bookingData.passenger_name);
+                printLine('So dien thoai / Phone', bookingData.passenger_phone);
+                printLine('Email', bookingData.contact_email);
+                doc.moveDown();
 
-            doc.end();
+                printLine('Chuyen / Route', `${bookingData.from} - ${bookingData.to}`);
+                printLine('Gio khoi hanh / Departure', new Date(bookingData.departure_time).toLocaleString('vi-VN'));
+                printLine('Bien so xe / Bus Plate', bookingData.license_plate);
+                doc.moveDown();
+
+                printLine('Ghe / Seat(s)', bookingData.seats.join(', '));
+                printLine('Tong tien / Total Amount', `${parseInt(bookingData.total_price).toLocaleString('vi-VN')} VND`);
+
+                // footer
+                doc.moveDown(2);
+                doc.fontSize(10).text('Vui long dua ma ve nay cho nhan vien nha xe de len xe.', { align: 'center', oblique: true });
+                doc.text('Please show this ticket to the bus attendant for boarding.', { align: 'center', oblique: true });
+
+                doc.end();
+            }).catch(reject);
         }
         catch (error) {
             reject(error);

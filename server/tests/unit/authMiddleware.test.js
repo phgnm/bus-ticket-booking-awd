@@ -47,9 +47,11 @@ describe('Auth Middleware', () => {
 
 
 describe('Authorize Role Middleware', () => {
+    /*
     const generateTokenWithRole = (role) => {
         return jwt.sign({ id: 1, role }, 'test-secret');
     };
+    */
 
     // 1. successful test (admin route)
     it('should call next() if user role is authorized', () => {
