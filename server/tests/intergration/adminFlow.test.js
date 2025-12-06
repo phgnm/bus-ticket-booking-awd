@@ -6,7 +6,7 @@ describe('Admin Management Flow', () => {
     let adminToken;
     let createdBusId;
     let createdRouteId;
-    let createdTripId;
+    // let createdTripId; // Unused variable
 
     // random data
     const randomSuffix = Math.floor(Math.random() * 10000); 
@@ -80,7 +80,7 @@ describe('Admin Management Flow', () => {
     // === ROUTE MANAGEMENT TESTS ===
 
     it('should FAIL to create a new route with invalid data', async () => {
-        const res = await request(app)
+        await request(app)
             .post('/api/admin/routes')
             .set('Authorization', `Bearer ${adminToken}`)
             .send({
@@ -178,7 +178,7 @@ describe('Admin Management Flow', () => {
             });
 
         expect(res.statusCode).toEqual(201);
-        createdTripId = res.body.data.id;
+        // createdTripId = res.body.data.id;
     });
 
     it('should FAIL to create trip with non-existent route', async () => {

@@ -67,9 +67,9 @@ describe('Trip Search API (User Flow)', () => {
 
         // create fake bookings
         for(let i=1; i<=5; i++) {
-             await pool.query(`INSERT INTO bookings (trip_id, passenger_name, passenger_phone, seat_number, total_price) VALUES ($1, 'Test', '000', $2, 0)`, [tripVipId, `A${i}`]);
+             await pool.query(`INSERT INTO bookings (trip_id, passenger_name, passenger_phone, seat_number, total_price, booking_code, contact_email) VALUES ($1, 'Test', '000', $2, 0, $3, 'test@example.com')`, [tripVipId, `A${i}`, `VIP-${i}`]);
         }
-         await pool.query(`INSERT INTO bookings (trip_id, passenger_name, passenger_phone, seat_number, total_price) VALUES ($1, 'Test', '000', 'B1', 0)`, [tripNormalId]);
+         await pool.query(`INSERT INTO bookings (trip_id, passenger_name, passenger_phone, seat_number, total_price, booking_code, contact_email) VALUES ($1, 'Test', '000', 'B1', 0, 'NOR-1', 'test@example.com')`, [tripNormalId]);
     });
 
     // --- TEST CASES ---
@@ -153,7 +153,7 @@ describe('Trip Search API (User Flow)', () => {
         // book remianing normal trips until it's full
         const promises = [];
         for(let i=2; i<=40; i++) {
-             promises.push(pool.query(`INSERT INTO bookings (trip_id, passenger_name, passenger_phone, seat_number, total_price) VALUES ($1, 'Full', '000', $2, 0)`, [tripNormalId, `B${i}`]));
+             promises.push(pool.query(`INSERT INTO bookings (trip_id, passenger_name, passenger_phone, seat_number, total_price, booking_code, contact_email) VALUES ($1, 'Full', '000', $2, 0, $3, 'full@example.com')`, [tripNormalId, `B${i}`, `FULL-${i}`]));
         }
         await Promise.all(promises);
 

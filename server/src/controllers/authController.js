@@ -59,7 +59,7 @@ exports.register = async (req, res) => {
         const verificationToken = crypto.randomBytes(32).toString('hex');
 
         // Insert user into database
-        const newUser = await pool.query(
+        await pool.query(
             'INSERT INTO users (email, password_hash, full_name, role, verification_token, is_verified) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, email, role',
             [email, hash, full_name, 'user', verificationToken, false]
         );
