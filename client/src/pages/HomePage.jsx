@@ -111,8 +111,10 @@ export default function HomePage() {
                             </CardContent>
                         </Card>
                     </motion.div>
+                    
                 </div>
             </section>
+            
 
             {/* History Section (Giữ nguyên) */}
             {/* ... */}
