@@ -9,17 +9,15 @@ describe('Admin Management Flow', () => {
     // let createdTripId; // Unused variable
 
     // random data
-    const randomSuffix = Math.floor(Math.random() * 10000); 
+    const randomSuffix = Math.floor(Math.random() * 10000);
     const busPlate = `59Z-${randomSuffix}`;
 
     // test admin login
     it('should login as admin and return token', async () => {
-        const res = await request(app)
-            .post('/api/auth/login')
-            .send({
-                email: 'admin@vexere.com',
-                password: 'admin123'
-            });
+        const res = await request(app).post('/api/auth/login').send({
+            email: 'admin@vexere.com',
+            password: 'admin123',
+        });
 
         expect(res.statusCode).toEqual(200);
         expect(res.body).toHaveProperty('token');
@@ -39,7 +37,7 @@ describe('Admin Management Flow', () => {
                 type: 'Sleeper',
                 seat_layout: { rows: 10, cols: 4 },
                 amenities: ['Wifi', 'LCD'],
-                images: ['http://img.com/1.jpg']
+                images: ['http://img.com/1.jpg'],
             });
 
         expect(res.statusCode).toEqual(201);
@@ -57,7 +55,7 @@ describe('Admin Management Flow', () => {
                 brand: 'Another Bus',
                 seat_capacity: 30,
                 type: 'Seat',
-                seat_layout: { rows: 10, cols: 3 }
+                seat_layout: { rows: 10, cols: 3 },
             });
 
         expect(res.statusCode).toEqual(400);
@@ -73,7 +71,7 @@ describe('Admin Management Flow', () => {
         expect(res.body.success).toBe(true);
         expect(Array.isArray(res.body.data)).toBe(true);
         // Ensure our created bus is in the list
-        const found = res.body.data.find(b => b.id === createdBusId);
+        const found = res.body.data.find((b) => b.id === createdBusId);
         expect(found).toBeTruthy();
     });
 
@@ -88,7 +86,7 @@ describe('Admin Management Flow', () => {
                 distance: 300,
                 estimated_duration: 300,
                 price_base: 250000,
-                points: []
+                points: [],
             });
 
         // Assuming the DB schema has NOT NULL constraints, this should fail.
@@ -107,7 +105,6 @@ describe('Admin Management Flow', () => {
         // If I send null/undefined, pg might complain or insert NULL.
         // Let's force a failure by sending an invalid type or violating a constraint if possible.
         // Creating a route with invalid location ID (FK violation) is a good test.
-
     });
 
     it('should FAIL to create a new route with invalid location IDs', async () => {
@@ -119,7 +116,7 @@ describe('Admin Management Flow', () => {
                 route_to: 88888,
                 distance: 300,
                 estimated_duration: 300,
-                price_base: 250000
+                price_base: 250000,
             });
 
         expect(res.statusCode).toEqual(500); // Controller catches error and returns 500
@@ -137,9 +134,19 @@ describe('Admin Management Flow', () => {
                 estimated_duration: 300,
                 price_base: 250000,
                 points: [
-                    { point_id: 1, type: 'PICKUP', order_index: 1, time_offset: 0 },
-                    { point_id: 4, type: 'DROPOFF', order_index: 2, time_offset: 300 }
-                ]
+                    {
+                        point_id: 1,
+                        type: 'PICKUP',
+                        order_index: 1,
+                        time_offset: 0,
+                    },
+                    {
+                        point_id: 4,
+                        type: 'DROPOFF',
+                        order_index: 2,
+                        time_offset: 300,
+                    },
+                ],
             });
 
         expect(res.statusCode).toEqual(201);
@@ -154,7 +161,7 @@ describe('Admin Management Flow', () => {
         expect(res.statusCode).toEqual(200);
         expect(res.body.success).toBe(true);
         expect(Array.isArray(res.body.data)).toBe(true);
-        const found = res.body.data.find(r => r.id === createdRouteId);
+        const found = res.body.data.find((r) => r.id === createdRouteId);
         expect(found).toBeTruthy();
     });
 
@@ -174,7 +181,7 @@ describe('Admin Management Flow', () => {
             .send({
                 route_id: createdRouteId,
                 bus_id: createdBusId,
-                departure_time: tomorrow.toISOString()
+                departure_time: tomorrow.toISOString(),
             });
 
         expect(res.statusCode).toEqual(201);
@@ -192,7 +199,7 @@ describe('Admin Management Flow', () => {
             .send({
                 route_id: 999999, // Invalid ID
                 bus_id: createdBusId,
-                departure_time: tomorrow.toISOString()
+                departure_time: tomorrow.toISOString(),
             });
 
         expect(res.statusCode).toEqual(404);
@@ -213,11 +220,11 @@ describe('Admin Management Flow', () => {
             .set('Authorization', `Bearer ${adminToken}`)
             .send({
                 route_id: createdRouteId,
-                bus_id: createdBusId, 
-                departure_time: tomorrow.toISOString()
+                bus_id: createdBusId,
+                departure_time: tomorrow.toISOString(),
             });
 
-        expect(res.statusCode).toEqual(409); 
+        expect(res.statusCode).toEqual(409);
         expect(res.body.msg).toContain('Xe đang bận');
     });
 
@@ -233,7 +240,7 @@ describe('Admin Management Flow', () => {
             .send({
                 route_id: createdRouteId,
                 bus_id: createdBusId,
-                departure_time: tomorrow.toISOString()
+                departure_time: tomorrow.toISOString(),
             });
 
         expect(res.statusCode).toEqual(409);
@@ -252,7 +259,7 @@ describe('Admin Management Flow', () => {
             .send({
                 route_id: createdRouteId,
                 bus_id: createdBusId,
-                departure_time: tomorrow.toISOString()
+                departure_time: tomorrow.toISOString(),
             });
 
         expect(res.statusCode).toEqual(409);
@@ -271,7 +278,7 @@ describe('Admin Management Flow', () => {
             .send({
                 route_id: createdRouteId,
                 bus_id: createdBusId,
-                departure_time: tomorrow.toISOString()
+                departure_time: tomorrow.toISOString(),
             });
 
         expect(res.statusCode).toEqual(201);
@@ -304,34 +311,44 @@ describe('Admin Management Flow', () => {
     // clear data post-test (to make it reusable)
     afterAll(async () => {
         if (createdBusId && createdRouteId) {
-            console.log(`\n--- Cleaning up test data: Bus ID ${createdBusId}, Route ID ${createdRouteId} ---`);
+            console.log(
+                `\n--- Cleaning up test data: Bus ID ${createdBusId}, Route ID ${createdRouteId} ---`,
+            );
             try {
                 // 1. delete trips
-                await pool.query('DELETE FROM trips WHERE bus_id = $1 OR route_id = $2', [
-                    createdBusId,
-                    createdRouteId,
-                ]);
+                await pool.query(
+                    'DELETE FROM trips WHERE bus_id = $1 OR route_id = $2',
+                    [createdBusId, createdRouteId],
+                );
                 console.log('Deleted test trips.');
 
                 // 2. delete route_points
-                await pool.query('DELETE FROM route_points WHERE route_id = $1', [createdRouteId]);
+                await pool.query(
+                    'DELETE FROM route_points WHERE route_id = $1',
+                    [createdRouteId],
+                );
                 console.log('Deleted test route_points.');
 
                 // 3. delete routes
-                await pool.query('DELETE FROM routes WHERE id = $1', [createdRouteId]);
+                await pool.query('DELETE FROM routes WHERE id = $1', [
+                    createdRouteId,
+                ]);
                 console.log('Deleted test route.');
 
                 // 4. delete buses (if not already deleted by test)
-                await pool.query('DELETE FROM buses WHERE id = $1', [createdBusId]);
+                await pool.query('DELETE FROM buses WHERE id = $1', [
+                    createdBusId,
+                ]);
                 console.log('Deleted test bus.');
-
             } catch (error) {
                 console.error('ERROR during cleanup:', error.message);
             }
         } else {
-            console.log('\n--- Cleanup skipped: Test data not fully created ---');
+            console.log(
+                '\n--- Cleanup skipped: Test data not fully created ---',
+            );
         }
 
-        await pool.end(); 
+        await pool.end();
     });
 });

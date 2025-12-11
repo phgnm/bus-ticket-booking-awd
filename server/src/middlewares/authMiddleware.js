@@ -43,7 +43,7 @@ exports.optionalAuthenticateJWT = (req, res, next) => {
         const token = authHeader.split(' ')[1];
         jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
             if (!err) {
-                req.user = user; 
+                req.user = user;
             }
             next();
         });

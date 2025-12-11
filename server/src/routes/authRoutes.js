@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
-const { 
-    registerValidation, 
+const {
+    registerValidation,
     forgotPasswordValidation,
-    resetPasswordValidation 
+    resetPasswordValidation,
 } = require('../middlewares/validationMiddleware');
 
 /**
@@ -191,7 +191,11 @@ router.post('/refresh-token', authController.refreshToken);
  *       500:
  *         description: Server error
  */
-router.post('/forgot-password', forgotPasswordValidation, authController.forgotPassword);
+router.post(
+    '/forgot-password',
+    forgotPasswordValidation,
+    authController.forgotPassword,
+);
 
 /**
  * @swagger
@@ -222,6 +226,10 @@ router.post('/forgot-password', forgotPasswordValidation, authController.forgotP
  *       500:
  *         description: Server error
  */
-router.post('/reset-password', resetPasswordValidation, authController.resetPassword);
+router.post(
+    '/reset-password',
+    resetPasswordValidation,
+    authController.resetPassword,
+);
 
 module.exports = router;

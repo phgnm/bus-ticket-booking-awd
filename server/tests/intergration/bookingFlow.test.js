@@ -9,7 +9,7 @@ const pool = require('../../src/config/db');
 
 // Mock email service to avoid sending real emails
 jest.mock('../../src/utils/emailService', () => ({
-    sendTicketEmail: jest.fn().mockResolvedValue(true)
+    sendTicketEmail: jest.fn().mockResolvedValue(true),
 }));
 
 describe('Booking Flow', () => {
@@ -32,17 +32,25 @@ describe('Booking Flow', () => {
         const locB = locRes.rows[1].id;
 
         // 2. Create Bus
-        const busRes = await pool.query(`INSERT INTO buses (license_plate, brand, seat_capacity, type) VALUES ('BOOK-${randomSuffix}', 'TestBus', 40, 'Sleeper') RETURNING id`);
+        const busRes = await pool.query(
+            `INSERT INTO buses (license_plate, brand, seat_capacity, type) VALUES ('BOOK-${randomSuffix}', 'TestBus', 40, 'Sleeper') RETURNING id`,
+        );
         const busId = busRes.rows[0].id;
 
         // 3. Create Route
-        const routeRes = await pool.query(`INSERT INTO routes (route_from, route_to, distance, estimated_duration, price_base) VALUES ($1, $2, 100, 60, 100000) RETURNING id`, [locA, locB]);
+        const routeRes = await pool.query(
+            `INSERT INTO routes (route_from, route_to, distance, estimated_duration, price_base) VALUES ($1, $2, 100, 60, 100000) RETURNING id`,
+            [locA, locB],
+        );
         const routeId = routeRes.rows[0].id;
 
         // 4. Create Trip
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
-        const tripRes = await pool.query(`INSERT INTO trips (route_id, bus_id, departure_time, status) VALUES ($1, $2, $3, 'SCHEDULED') RETURNING id`, [routeId, busId, tomorrow]);
+        const tripRes = await pool.query(
+            `INSERT INTO trips (route_id, bus_id, departure_time, status) VALUES ($1, $2, $3, 'SCHEDULED') RETURNING id`,
+            [routeId, busId, tomorrow],
+        );
         tripId = tripRes.rows[0].id;
     });
 
@@ -55,8 +63,8 @@ describe('Booking Flow', () => {
                 passenger_info: {
                     name: 'John Doe',
                     phone: '0901234567',
-                    email: 'john@example.com'
-                }
+                    email: 'john@example.com',
+                },
             });
 
         expect(res.statusCode).toEqual(201);
@@ -74,8 +82,8 @@ describe('Booking Flow', () => {
                 passenger_info: {
                     name: 'Jane Doe',
                     phone: '0909876543',
-                    email: 'jane@example.com'
-                }
+                    email: 'jane@example.com',
+                },
             });
 
         expect(res.statusCode).toEqual(409);
@@ -92,7 +100,9 @@ describe('Booking Flow', () => {
         expect(res.body.success).toBe(true);
         expect(res.body.data.booking_code).toBe(bookingCode);
         expect(res.body.data.passenger_name).toBe('John Doe');
-        expect(res.body.data.seats).toEqual(expect.arrayContaining(['A1', 'A2']));
+        expect(res.body.data.seats).toEqual(
+            expect.arrayContaining(['A1', 'A2']),
+        );
     });
 
     it('should FAIL to lookup with wrong info', async () => {
@@ -105,7 +115,9 @@ describe('Booking Flow', () => {
 
     afterAll(async () => {
         // Cleanup
-        await pool.query('DELETE FROM bookings WHERE booking_code = $1', [bookingCode]);
+        await pool.query('DELETE FROM bookings WHERE booking_code = $1', [
+            bookingCode,
+        ]);
         await pool.query('DELETE FROM trips WHERE id = $1', [tripId]);
         // Cascade delete should handle others if set, or we leave them.
         await pool.end();

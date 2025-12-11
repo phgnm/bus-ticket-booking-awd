@@ -16,7 +16,7 @@ exports.getLocations = async (req, res) => {
         const result = await pool.query(query, params);
         res.json({
             success: true,
-            data: result.rows
+            data: result.rows,
         });
     } catch (err) {
         console.error(err);

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const bookingController = require('../controllers/bookingController');
+const paymentController = require('../controllers/paymentController');
 
 /**
  * @swagger
@@ -142,5 +143,7 @@ router.get('/lookup', bookingController.lookupBooking);
  *         description: Server error
  */
 router.post('/', bookingController.createBooking);
+
+router.post('/payment-webhook', paymentController.receiveWebHook);
 
 module.exports = router;
