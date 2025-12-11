@@ -174,7 +174,6 @@ router.get('/', tripController.searchTrips);
  */
 router.get('/:id/seat-status', tripController.getSeatStatus);
 
-
 /**
  * @swagger
  * /trips/{id}/lock-seat:
@@ -205,15 +204,14 @@ router.get('/:id/seat-status', tripController.getSeatStatus);
  *         description: Seat already sold or locked
  */
 router.post(
-  '/:id/lock-seat',
-  (req, res, next) => {
-    const authHeader = req.headers.authorization;
-    if (authHeader) return authenticateJWT(req, res, next);
-    next();
-  },
-  tripController.lockSeat
+    '/:id/lock-seat',
+    (req, res, next) => {
+        const authHeader = req.headers.authorization;
+        if (authHeader) return authenticateJWT(req, res, next);
+        next();
+    },
+    tripController.lockSeat,
 );
-
 
 /**
  * @swagger
@@ -282,6 +280,10 @@ router.post('/:id/unlock-seat', tripController.unlockSeat);
  *       201:
  *         description: Booking created successfully
  */
-router.post('/:id/booking', optionalAuthenticateJWT, tripController.createBooking);
+router.post(
+    '/:id/booking',
+    optionalAuthenticateJWT,
+    tripController.createBooking,
+);
 
 module.exports = router;

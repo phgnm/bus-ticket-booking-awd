@@ -44,19 +44,16 @@ router.use(authenticateJWT, authorizeRole('admin'));
  *                       type: number
  */
 // API for admin widget
-router.get(
-    '/admin/stats',
-    (req, res) => {
-        res.json({
-            success: true,
-            data: {
-                revenue: 123456789,
-                totalBookings: 9876,
-                activeBuses: 123,
-            },
-        });
-    },
-);
+router.get('/admin/stats', (req, res) => {
+    res.json({
+        success: true,
+        data: {
+            revenue: 123456789,
+            totalBookings: 9876,
+            activeBuses: 123,
+        },
+    });
+});
 
 /**
  * @swagger

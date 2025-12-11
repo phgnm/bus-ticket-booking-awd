@@ -1,6 +1,11 @@
 const transporter = require('../config/mail');
 
-const sendTicketEmail = async (toEmail, bookingCode, ticketPdfBuffer, tripInfo) => {
+const sendTicketEmail = async (
+    toEmail,
+    bookingCode,
+    ticketPdfBuffer,
+    tripInfo,
+) => {
     try {
         const mailOptions = {
             from: '"Vexere Bus Lines" <noreply@vexerebus.com>', // Tên hiển thị
@@ -29,22 +34,21 @@ const sendTicketEmail = async (toEmail, bookingCode, ticketPdfBuffer, tripInfo) 
                 {
                     filename: `Ve_xe_${bookingCode}.pdf`,
                     content: ticketPdfBuffer,
-                    contentType: 'application/pdf'
-                }
-            ]
+                    contentType: 'application/pdf',
+                },
+            ],
         };
 
         const info = await transporter.sendMail(mailOptions);
         return info;
-    }
-    catch (error) {
+    } catch (error) {
         console.error('❌ Lỗi khi gửi mail vé:', error);
-        // Clean Architecture: Service có thể throw error để Controller biết và log lại, 
+        // Clean Architecture: Service có thể throw error để Controller biết và log lại,
         // nhưng không nên làm crash app.
-        throw error; 
+        throw error;
     }
 };
 
 module.exports = {
-    sendTicketEmail
+    sendTicketEmail,
 };

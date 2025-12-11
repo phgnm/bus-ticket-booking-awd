@@ -15,7 +15,10 @@ exports.lockSeat = async (req, res) => {
         for (const seat of seats) {
             const key = `lock:${tripId}:${seat}`;
             // Try to set lock with 5 min (300s) expiry, only if not exists (NX)
-            const result = await redisClient.set(key, userId, { NX: true, EX: 300 });
+            const result = await redisClient.set(key, userId, {
+                NX: true,
+                EX: 300,
+            });
 
             if (result === 'OK') {
                 lockedSeats.push(seat);
@@ -39,7 +42,12 @@ exports.lockSeat = async (req, res) => {
                 const holder = await redisClient.get(key);
                 if (holder === userId) await redisClient.del(key);
             }
-            return res.status(409).json({ msg: 'Some seats are already locked', unavailableSeats });
+            return res
+                .status(409)
+                .json({
+                    msg: 'Some seats are already locked',
+                    unavailableSeats,
+                });
         }
 
         // Emit socket event to notify others (optional, frontend can listen)
@@ -48,8 +56,11 @@ exports.lockSeat = async (req, res) => {
             io.emit('seats_locked', { tripId, seats, userId });
         }
 
-        res.json({ success: true, msg: 'Seats locked successfully', lockedSeats });
-
+        res.json({
+            success: true,
+            msg: 'Seats locked successfully',
+            lockedSeats,
+        });
     } catch (err) {
         console.error(err);
         res.status(500).json({ msg: 'Server Error' });

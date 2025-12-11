@@ -26,7 +26,7 @@ describe('Seat Locking Flow', () => {
             .post(`/api/seats/${tripId}/lock`)
             .send({
                 seats: ['A1', 'A2'],
-                userId: userId
+                userId: userId,
             });
 
         expect(res.statusCode).toBe(200);
@@ -41,7 +41,7 @@ describe('Seat Locking Flow', () => {
             .post(`/api/seats/${tripId}/lock`)
             .send({
                 seats: ['A1'],
-                userId: userId2
+                userId: userId2,
             });
 
         expect(res.statusCode).toBe(409);
@@ -53,7 +53,7 @@ describe('Seat Locking Flow', () => {
             .post(`/api/seats/${tripId}/lock`)
             .send({
                 seats: ['A1'],
-                userId: userId
+                userId: userId,
             });
 
         expect(res.statusCode).toBe(200);
@@ -65,7 +65,7 @@ describe('Seat Locking Flow', () => {
             .post(`/api/seats/${tripId}/unlock`)
             .send({
                 seats: ['A1'],
-                userId: userId
+                userId: userId,
             });
 
         expect(res.statusCode).toBe(200);

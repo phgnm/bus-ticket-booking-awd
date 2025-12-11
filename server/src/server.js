@@ -2,7 +2,7 @@ const http = require('http');
 const app = require('./app');
 const pool = require('./config/db');
 const bcrypt = require('bcryptjs');
-const { Server } = require("socket.io");
+const { Server } = require('socket.io');
 require('dotenv').config();
 
 const PORT = process.env.PORT || 5000;
@@ -13,9 +13,9 @@ const server = http.createServer(app);
 // Setup Socket.IO
 const io = new Server(server, {
     cors: {
-        origin: process.env.CLIENT_URL || "http://localhost:5173", // Allow frontend
-        methods: ["GET", "POST"]
-    }
+        origin: process.env.CLIENT_URL || 'http://localhost:5173', // Allow frontend
+        methods: ['GET', 'POST'],
+    },
 });
 
 // Pass io to app for use in controllers
@@ -53,7 +53,7 @@ server.listen(PORT, async () => {
     console.log(`Server is running on port ${PORT}`);
     console.log(`API Endpoint: http://localhost:${PORT}`);
 
-    if (process.env.CI !== 'true') { 
+    if (process.env.CI !== 'true') {
         await createDefaultAdmin();
     }
 });

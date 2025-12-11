@@ -45,7 +45,6 @@ describe('Auth Middleware', () => {
     });
 });
 
-
 describe('Authorize Role Middleware', () => {
     /*
     const generateTokenWithRole = (role) => {
@@ -55,7 +54,10 @@ describe('Authorize Role Middleware', () => {
 
     // 1. successful test (admin route)
     it('should call next() if user role is authorized', () => {
-        const authorizeAdmin = require('../../src/middlewares/authMiddleware').authorizeRole('admin');
+        const authorizeAdmin =
+            require('../../src/middlewares/authMiddleware').authorizeRole(
+                'admin',
+            );
         const req = httpMocks.createRequest({
             user: { id: 1, role: 'admin' }, // simulate req.user
         });
@@ -65,14 +67,18 @@ describe('Authorize Role Middleware', () => {
         authorizeAdmin(req, res, next);
 
         expect(next).toHaveBeenCalled();
-        expect(res.statusCode).toBe(200); 
+        expect(res.statusCode).toBe(200);
     });
 
     // 2. successful test (user/admin route)
     it('should call next() if user role is in the list of authorized roles', () => {
-        const authorizeUserAndAdmin = require('../../src/middlewares/authMiddleware').authorizeRole(['user', 'admin']);
+        const authorizeUserAndAdmin =
+            require('../../src/middlewares/authMiddleware').authorizeRole([
+                'user',
+                'admin',
+            ]);
         const req = httpMocks.createRequest({
-            user: { id: 2, role: 'user' }, 
+            user: { id: 2, role: 'user' },
         });
         const res = httpMocks.createResponse();
         const next = jest.fn();
@@ -84,9 +90,12 @@ describe('Authorize Role Middleware', () => {
 
     // 3. fail test (user enters admin routes)
     it('should return 403 if user role is NOT authorized', () => {
-        const authorizeAdmin = require('../../src/middlewares/authMiddleware').authorizeRole('admin');
+        const authorizeAdmin =
+            require('../../src/middlewares/authMiddleware').authorizeRole(
+                'admin',
+            );
         const req = httpMocks.createRequest({
-            user: { id: 2, role: 'user' }, 
+            user: { id: 2, role: 'user' },
         });
         const res = httpMocks.createResponse();
         const next = jest.fn();

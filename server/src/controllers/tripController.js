@@ -172,13 +172,9 @@ exports.searchTrips = async (req, res) => {
         // Skip cache set in test environment as well
         if (process.env.NODE_ENV !== 'test' && redisClient.isOpen) {
             try {
-                await redisClient.set(
-                    cacheKey,
-                    JSON.stringify(responseData),
-                    {
-                        EX: 300, // 5 minutes
-                    },
-                );
+                await redisClient.set(cacheKey, JSON.stringify(responseData), {
+                    EX: 300, // 5 minutes
+                });
             } catch (err) {
                 console.error('Redis cache set error:', err);
             }
@@ -192,7 +188,7 @@ exports.searchTrips = async (req, res) => {
 };
 
 exports.getSeatStatus = async (req, res) => {
-    try{
+    try {
         const { id } = req.params;
 
         // take sold seat info from db
@@ -202,12 +198,12 @@ exports.getSeatStatus = async (req, res) => {
             WHERE trip_id = $1 AND booking_status != 'CANCELLED'
         `;
         const soldResult = await pool.query(soldQuery, [id]);
-        const soldSeats = soldResult.rows.map(row => row.seat_number);
+        const soldSeats = soldResult.rows.map((row) => row.seat_number);
 
         // take locked seat list from redis
         const keys = await redisClient.keys(`lock:trip:${id}:seat:*`);
 
-        const lockedSeats = keys.map(key => {
+        const lockedSeats = keys.map((key) => {
             return key.split(':').pop();
         });
 
@@ -215,11 +211,9 @@ exports.getSeatStatus = async (req, res) => {
             success: true,
             trip_id: id,
             sold_seats: soldSeats,
-            locked_seats: lockedSeats
+            locked_seats: lockedSeats,
         });
-        
-    }
-    catch (err) {
+    } catch (err) {
         console.error(err);
         res.status(500).json({ msg: 'Lỗi lấy trạng thái ghế' });
     }
@@ -229,7 +223,9 @@ exports.lockSeat = async (req, res) => {
     try {
         const { id } = req.params; // trip_id
         const { seat_number } = req.body;
-        const userId = req.user ? `user:${req.user.id}` : (req.body.guest_id || 'unknown');
+        const userId = req.user
+            ? `user:${req.user.id}`
+            : req.body.guest_id || 'unknown';
 
         if (!seat_number) {
             return res.status(400).json({ msg: 'Thiếu số ghế' });
@@ -238,35 +234,34 @@ exports.lockSeat = async (req, res) => {
         // check db if it's sold
         const checkSold = await pool.query(
             "SELECT * FROM bookings WHERE trip_id = $1 AND seat_number = $2 AND booking_status != 'CANCELLED'",
-            [id, seat_number]
+            [id, seat_number],
         );
 
         if (checkSold.rows.length > 0) {
             return res.status(409).json({
-                msg: 'Ghế này đã được bán!'
+                msg: 'Ghế này đã được bán!',
             });
         }
 
         // check & lock redis
         const key = `lock:trip:${id}:seat:${seat_number}`;
-        
+
         const result = await redisClient.set(key, userId, {
             NX: true,
-            EX: 600 
+            EX: 600,
         });
 
         if (!result) {
             return res.status(409).json({
-                msg: 'Ghế đang được người khác giữ!'
+                msg: 'Ghế đang được người khác giữ!',
             });
         }
 
         res.json({
             success: true,
-            mesg: `Đã giữ ghế ${seat_number} trong 10 phút`
+            mesg: `Đã giữ ghế ${seat_number} trong 10 phút`,
         });
-    }
-    catch (err) {
+    } catch (err) {
         console.error(err);
         res.status(500).json({ msg: 'Lỗi server khi giữ ghế' });
     }
@@ -279,15 +274,14 @@ exports.unlockSeat = async (req, res) => {
 
         // check whether the unlocking and locking person the same one
         const key = `lock:trip:${id}:seat:${seat_number}`;
-        
+
         await redisClient.del(key);
 
         res.json({
             success: true,
-            msg: `Đã hủy giữ ghế ${seat_number}`
+            msg: `Đã hủy giữ ghế ${seat_number}`,
         });
-    }
-    catch (err) {
+    } catch (err) {
         console.error(err);
         res.status(500).json({ msg: 'Lỗi server khi hủy giữ ghế' });
     }
@@ -297,7 +291,7 @@ exports.createBooking = async (req, res) => {
     const client = await pool.connect();
 
     try {
-        const { id } = req.params; 
+        const { id } = req.params;
         const { seats, guest_info } = req.body;
 
         // identify user
@@ -313,7 +307,10 @@ exports.createBooking = async (req, res) => {
             redisOwnerId = `user:${userId}`;
 
             // take info from users table
-            const userRes = await client.query('SELECT email, full_name, phone_number FROM users WHERE id = $1', [userId]);
+            const userRes = await client.query(
+                'SELECT email, full_name, phone_number FROM users WHERE id = $1',
+                [userId],
+            );
             const userData = userRes.rows[0];
             contactEmail = userData.email;
             contactName = userData.full_name;
@@ -321,7 +318,11 @@ exports.createBooking = async (req, res) => {
         } else {
             // case: guest
             if (!guest_info || !guest_info.email || !guest_info.guest_id) {
-                return res.status(400).json({ msg: 'Thiếu thông tin khách hàng (Email/GuestID)' });
+                return res
+                    .status(400)
+                    .json({
+                        msg: 'Thiếu thông tin khách hàng (Email/GuestID)',
+                    });
             }
             redisOwnerId = guest_info.guest_id;
             contactEmail = guest_info.email;
@@ -337,12 +338,12 @@ exports.createBooking = async (req, res) => {
             WHERE t.id = $1
         `;
         const tripRes = await client.query(tripQuery, [id]);
-        
-        if (tripRes.rows.length === 0) 
-            return res.status(404).json({ 
-                msg: 'Chuyến xe không tồn tại' 
+
+        if (tripRes.rows.length === 0)
+            return res.status(404).json({
+                msg: 'Chuyến xe không tồn tại',
             });
-            
+
         const pricePerTicket = parseFloat(tripRes.rows[0].price_base);
         const totalPrice = pricePerTicket;
 
@@ -359,7 +360,9 @@ exports.createBooking = async (req, res) => {
             const lockOwner = await redisClient.get(lockKey);
 
             if (!lockOwner) {
-                throw new Error(`Ghế ${seatNum} đã hết thời gian giữ chỗ (Hết hạn). Vui lòng chọn lại.`);
+                throw new Error(
+                    `Ghế ${seatNum} đã hết thời gian giữ chỗ (Hết hạn). Vui lòng chọn lại.`,
+                );
             }
             if (lockOwner !== redisOwnerId) {
                 throw new Error(`Ghế ${seatNum} đang được giữ bởi người khác.`);
@@ -368,7 +371,7 @@ exports.createBooking = async (req, res) => {
             // check db once more
             const checkSold = await client.query(
                 "SELECT * FROM bookings WHERE trip_id = $1 AND seat_number = $2 AND booking_status != 'CANCELLED'",
-                [id, seatNum]
+                [id, seatNum],
             );
             if (checkSold.rows.length > 0) {
                 throw new Error(`Ghế ${seatNum} đã được bán trước do91`);
@@ -383,8 +386,14 @@ exports.createBooking = async (req, res) => {
                 RETURNING id;
             `;
             await client.query(insertQuery, [
-                id, userId, contactName, contactPhone, 
-                seatNum, totalPrice, bookingCode, contactEmail
+                id,
+                userId,
+                contactName,
+                contactPhone,
+                seatNum,
+                totalPrice,
+                bookingCode,
+                contactEmail,
             ]);
 
             bookedSeats.push(seatNum);
@@ -394,7 +403,7 @@ exports.createBooking = async (req, res) => {
         await client.query('COMMIT');
 
         // cleanup redis
-        seats.forEach(seat => {
+        seats.forEach((seat) => {
             redisClient.del(`lock:trip:${id}:seat:${seat}`);
         });
 
@@ -423,17 +432,22 @@ exports.createBooking = async (req, res) => {
                 passenger_name: contactName,
                 passenger_phone: contactPhone,
                 contact_email: contactEmail,
-                total_price: pricePerTicket * seats.length
+                total_price: pricePerTicket * seats.length,
             };
 
             // create pdf
             const pdfBuffer = await generateTicketPDF(fullTicketData);
 
             //call mail sending service:
-            emailService.sendTicketEmail(contactEmail, bookingCode, pdfBuffer, fullTicketData)
-                .catch(err => console.error("Background Email Error:", err));
-        }
-        catch (postProcessErr) {
+            emailService
+                .sendTicketEmail(
+                    contactEmail,
+                    bookingCode,
+                    pdfBuffer,
+                    fullTicketData,
+                )
+                .catch((err) => console.error('Background Email Error:', err));
+        } catch (postProcessErr) {
             console.error('Lỗi hậu xử lý (PDF/Email):', postProcessErr);
             // Không return lỗi vì booking đã thành công (Commit rồi)
         }
@@ -443,19 +457,17 @@ exports.createBooking = async (req, res) => {
             msg: 'Đặt vé thành công',
             booking_code: bookingCode,
             seats: bookedSeats,
-            total_amount: pricePerTicket * seats.length
+            total_amount: pricePerTicket * seats.length,
         });
-    }
-    catch (err) {
+    } catch (err) {
         await client.query('ROLLBACK');
         console.error('Booking Error:', err.message);
-    
-        res.status(400).json({ 
-            success: false, 
-            msg: err.message || 'Lỗi xử lý đặt vé' 
+
+        res.status(400).json({
+            success: false,
+            msg: err.message || 'Lỗi xử lý đặt vé',
         });
-    } 
-    finally {
-        client.release(); 
+    } finally {
+        client.release();
     }
-}
+};
