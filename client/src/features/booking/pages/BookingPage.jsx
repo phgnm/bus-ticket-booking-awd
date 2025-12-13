@@ -3,7 +3,7 @@ import { useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useBooking } from '@/context/BookingContext';
 import api from '@/lib/api';
-import SeatSelector from '@/components/SeatSelector';
+import SeatSelector from '@/components/shared/SeatSelector';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';

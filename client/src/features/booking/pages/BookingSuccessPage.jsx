@@ -3,7 +3,7 @@ import { useSearchParams, Link } from 'react-router-dom';
 import api from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
-import TicketView from '@/components/TicketView';
+import TicketView from '@/components/shared/TicketView';
 import { Download, Home, Loader2, ArrowRight } from 'lucide-react';
 
 export default function BookingSuccessPage() {
