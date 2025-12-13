@@ -49,6 +49,46 @@ const sendTicketEmail = async (
     }
 };
 
+const sendReminderEmail = async (toEmail, passengerName, tripInfo) => {
+    try {
+        const mailOptions = {
+            from: '"Vexere Bus Lines" <noreply@vexerebus.com>',
+            to: toEmail,
+            subject: `🔔 Nhắc nhở: Chuyến xe đi ${tripInfo.to} của bạn khởi hành ngày mai!`,
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
+                    <h2 style="color: #f0ad4e; text-align: center;">Sắp đến giờ khởi hành! 🚌</h2>
+                    <p>Xin chào <strong>${passengerName}</strong>,</p>
+                    <p>Chuyến xe của bạn sẽ khởi hành trong vòng 24 giờ tới. Đừng quên chuẩn bị hành lý nhé!</p>
+                    
+                    <div style="background-color: #fff3cd; padding: 15px; margin: 20px 0; border-radius: 5px; border: 1px solid #ffeeba;">
+                        <p><strong>Điểm đi:</strong> ${tripInfo.from}</p>
+                        <p><strong>Điểm đến:</strong> ${tripInfo.to}</p>
+                        <p><strong>Giờ xuất bến:</strong> ${new Date(tripInfo.departure_time).toLocaleString('vi-VN')}</p>
+                        <p><strong>Biển số xe:</strong> ${tripInfo.license_plate}</p>
+                        <p><strong>Ghế:</strong> ${tripInfo.seats}</p>
+                    </div>
+
+                    <p>Vui lòng có mặt tại bến xe trước 15-30 phút để làm thủ tục.</p>
+                    <p style="text-align: center;">
+                        <a href="http://localhost:5173/lookup-ticket" style="background-color: #0060c4; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Xem lại vé của bạn</a>
+                    </p>
+                    
+                    <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+                    <p style="font-size: 12px; color: #777; text-align: center;">Chúc bạn có một chuyến đi thượng lộ bình an!</p>
+                </div>
+            `
+        };
+
+        await transporter.sendMail(mailOptions);
+        console.log(`Reminder sent to ${toEmail}`);
+    }
+    catch (error) {
+        console.error(`Error sending email: `, error);
+    }
+};
+
 module.exports = {
     sendTicketEmail,
+    sendReminderEmail,
 };

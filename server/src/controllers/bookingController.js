@@ -87,8 +87,12 @@ exports.createBooking = async (req, res) => {
 
         // 1. Check if seats are available
         const seatCheck = await client.query(
-            `SELECT seat_number FROM bookings WHERE trip_id = $1 AND seat_number = ANY($2) FOR UPDATE`,
-            [trip_id, seats],
+            `SELECT seat_number FROM bookings 
+            WHERE trip_id = $1 
+            AND seat_number = ANY($2) 
+            AND booking_status != 'CANCELLED'  -- Thêm dòng này vào
+            FOR UPDATE`,
+            [trip_id, seats]
         );
 
         if (seatCheck.rows.length > 0) {
