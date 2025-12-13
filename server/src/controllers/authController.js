@@ -92,7 +92,7 @@ exports.refreshToken = async (req, res) => {
         const token = await authService.refreshToken(refreshToken);
         res.json({ token });
     } catch (err) {
-        res.status(403).json({ msg: 'Token expired or invalid' });
+        res.status(403).json({ msg: `Token expired or invalid: ${err}` });
     }
 };
 

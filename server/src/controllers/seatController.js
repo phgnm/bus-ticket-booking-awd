@@ -1,4 +1,3 @@
-const redisClient = require('../config/redis');
 const seatService = require('../services/seatService');
 
 exports.lockSeat = async (req, res) => {

@@ -1,4 +1,5 @@
 const locationRepository = require('../repositories/locationRepository');
+const redisClient = require('../config/redis');
 
 class LocationService {
     async getLocations(keyword) {

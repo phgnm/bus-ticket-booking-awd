@@ -1,5 +1,3 @@
-const pool = require('../config/db');
-
 class PaymentRepository {
     // change to PAID
     async updateBookingStatus(client, orderCode, status) {
