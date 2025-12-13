@@ -148,13 +148,19 @@ INSERT INTO buses (license_plate, brand, seat_capacity, type, amenities, images,
 ('51B-123.45', 'Phương Trang', 40, 'Sleeper', 
  '["Wifi", "Air Conditioning", "Water", "Blanket"]', 
  '["https://example.com/bus1.jpg"]',
- '{"rows": 10, "cols": 4, "aisle": 2}' -- JSON giả lập sơ đồ ghế
+ '{"rows": 10, "cols": 4, "aisle": 2}'
 ),
 ('49B-999.99', 'Thành Bưởi', 34, 'Limousine', 
  '["Wifi", "USB Charging", "TV", "Massage Seat"]', 
  '["https://example.com/bus2.jpg"]',
  '{"rows": 9, "cols": 3, "aisle": 1}'
 );
+
+INSERT INTO buses (license_plate, brand, seat_capacity, type, amenities, images, seat_layout) VALUES 
+('60B-567.89', 'Kumho Samco', 29, 'Seater', '["Wifi", "Water"]', '[]', '{"rows": 7, "cols": 4, "aisle": 2}'),
+('29B-888.88', 'Vân Chính', 34, 'Limousine', '["Wifi", "TV", "USB"]', '[]', '{"rows": 9, "cols": 3, "aisle": 1}'),
+('72B-111.22', 'Hoa Mai', 16, 'Minivan', '["Wifi", "Water"]', '[]', '{"rows": 5, "cols": 3, "aisle": 0}')
+ON CONFLICT (license_plate) DO NOTHING;
 
 -- === 4. INSERT ROUTES ===
 -- Tuyến 1: HCM -> Đà Lạt (300km, 8 tiếng, 300k)
@@ -164,6 +170,10 @@ INSERT INTO routes (route_from, route_to, distance, estimated_duration, price_ba
 -- Tuyến 2: HCM -> Vũng Tàu (100km, 2.5 tiếng, 180k)
 INSERT INTO routes (route_from, route_to, distance, estimated_duration, price_base) VALUES 
 (1, 3, 100, 150, 180000);
+
+INSERT INTO routes (route_from, route_to, distance, estimated_duration, price_base) VALUES 
+(2, 1, 300, 480, 300000), -- Đà Lạt -> HCM
+(3, 1, 100, 150, 180000); -- Vũng Tàu -> HCM
 
 -- === 5. INSERT ROUTE_POINTS (Cấu hình lộ trình) ===
 -- Cấu hình cho Tuyến 1 (HCM -> Đà Lạt, RouteID = 1)
@@ -189,6 +199,110 @@ INSERT INTO trips (route_id, bus_id, departure_time, status) VALUES
 INSERT INTO bookings (trip_id, passenger_name, passenger_phone, seat_number, total_price, booking_code, contact_email, booking_status) 
 VALUES 
 ((SELECT id FROM trips LIMIT 1), 'Nguyen Van A', '0909123456', 'A01', 300000, 'SEED-12345', 'user1@example.com', 'PAID');
+
+
+-- === DYNAMIC DATA GENERATION ===
+DO $$
+DECLARE
+    -- Các biến dùng trong vòng lặp
+    r_bus RECORD;
+    r_route RECORD;
+    v_trip_id INT;
+    v_trip_date DATE;
+    v_departure_time TIMESTAMP;
+    v_seat_idx INT;
+    v_seat_label VARCHAR;
+    v_is_booked BOOLEAN;
+    v_status VARCHAR;
+    v_booking_code VARCHAR;
+    v_created_at TIMESTAMP;
+    
+    -- Cấu hình thời gian seed (Từ 60 ngày trước -> 15 ngày tới)
+    start_date DATE := CURRENT_DATE - INTERVAL '60 days';
+    end_date DATE := CURRENT_DATE + INTERVAL '15 days';
+BEGIN
+    RAISE NOTICE '🚀 Bắt đầu quá trình seed data...';
+
+    -- 1. VÒNG LẶP QUA TỪNG NGÀY
+    FOR v_trip_date IN SELECT generate_series(start_date, end_date, '1 day')::DATE LOOP
+        
+        -- 2. VÒNG LẶP QUA CÁC TUYẾN ĐƯỜNG (Mỗi ngày, mỗi tuyến chạy vài chuyến)
+        FOR r_route IN SELECT * FROM routes LOOP
+            
+            -- Chọn ngẫu nhiên 1 xe bus cho chuyến này
+            SELECT * INTO r_bus FROM buses ORDER BY RANDOM() LIMIT 1;
+            
+            -- Random giờ chạy (Sáng 8h, Chiều 14h, hoặc Tối 22h) + Random phút
+            v_departure_time := v_trip_date + (ARRAY['08:00:00', '14:00:00', '22:00:00'])[floor(random()*3+1)]::TIME + (floor(random()*30) || ' minutes')::INTERVAL;
+
+            -- TẠO CHUYẾN ĐI (TRIPS)
+            INSERT INTO trips (route_id, bus_id, departure_time, status)
+            VALUES (r_route.id, r_bus.id, v_departure_time, 
+                CASE 
+                    WHEN v_departure_time < NOW() THEN 'COMPLETED' 
+                    ELSE 'SCHEDULED' 
+                END
+            )
+            ON CONFLICT (bus_id, departure_time) DO NOTHING
+            RETURNING id INTO v_trip_id;
+
+            -- Nếu tạo trip thành công (không bị trùng giờ), tiếp tục tạo BOOKING
+            IF v_trip_id IS NOT NULL THEN
+                
+                -- 3. GIẢ LẬP ĐẶT VÉ CHO CHUYẾN NÀY
+                -- Loop qua từng ghế của xe
+                FOR v_seat_idx IN 1..r_bus.seat_capacity LOOP
+                    
+                    -- Tỷ lệ lấp đầy ngẫu nhiên (60% - 90% cơ hội ghế được đặt)
+                    v_is_booked := (random() < 0.75); -- 75% khả năng có khách
+                    
+                    IF v_is_booked THEN
+                        -- Đặt tên ghế (A01, A02...)
+                        v_seat_label := 'A' || lpad(v_seat_idx::text, 2, '0');
+                        
+                        -- Random trạng thái vé
+                        -- 80% PAID, 10% CANCELLED, 10% PENDING (nếu chuyến tương lai)
+                        IF v_departure_time < NOW() THEN
+                            v_status := CASE WHEN random() < 0.9 THEN 'PAID' ELSE 'CANCELLED' END;
+                        ELSE
+                            v_status := CASE 
+                                WHEN random() < 0.7 THEN 'PAID' 
+                                WHEN random() < 0.9 THEN 'PENDING_PAYMENT'
+                                ELSE 'CANCELLED' 
+                            END;
+                        END IF;
+
+                        -- Giả lập ngày đặt vé (phải trước giờ đi)
+                        v_created_at := v_departure_time - (floor(random()*5) || ' days')::INTERVAL - (floor(random()*10) || ' hours')::INTERVAL;
+                        
+                        -- Sinh mã booking ngẫu nhiên
+                        v_booking_code := 'SEED-' || floor(random()*100000)::text;
+
+                        -- INSERT BOOKING
+                        INSERT INTO bookings (
+                            trip_id, passenger_name, passenger_phone, seat_number, 
+                            total_price, booking_code, contact_email, booking_status, created_at
+                        )
+                        VALUES (
+                            v_trip_id, 
+                            'Passenger ' || floor(random()*1000), 
+                            '09' || floor(random()*100000000)::text, 
+                            v_seat_label, 
+                            r_route.price_base, 
+                            v_booking_code, 
+                            'seed_user@example.com', 
+                            v_status,
+                            v_created_at
+                        )
+                        ON CONFLICT DO NOTHING; -- Bỏ qua nếu trùng ghế (do logic seed)
+                    END IF;
+                END LOOP; -- End loop ghế
+            END IF;
+        END LOOP; -- End loop routes
+    END LOOP; -- End loop date
+
+    RAISE NOTICE '✅ Đã seed xong dữ liệu!';
+END $$;
 
 -- =========== DATABASE INDEXING ===========
 CREATE INDEX IF NOT EXISTS idx_routes_from_to ON routes(route_from, route_to);
