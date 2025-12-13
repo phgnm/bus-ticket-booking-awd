@@ -17,7 +17,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog"; // Giả sử bạn có component Dialog của shadcn/ui (nếu chưa có thì dùng modal html thường)
-import TicketView from '@/components/TicketView'; // Tận dụng component TicketView đã làm
+import TicketView from '@/components/shared/TicketView'; // Tận dụng component TicketView đã làm
 
 export default function TicketHistoryPage() {
     const { user } = useAuth();

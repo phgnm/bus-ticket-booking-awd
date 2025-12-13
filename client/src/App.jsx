@@ -2,29 +2,29 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from '@/context/AuthContext';
 import { BookingProvider } from '@/context/BookingContext'; // Import Context
 
-import Navbar from '@/components/Navbar';
-import HomePage from '@/pages/HomePage';
-import LoginPage from '@/pages/LoginPage';
-import RegisterPage from '@/pages/RegisterPage';
-import VerifyEmailPage from '@/pages/VerifyEmailPage';
-import ForgotPasswordPage from '@/pages/ForgotPasswordPage';
-import ResetPasswordPage from '@/pages/ResetPasswordPage';
-import TripSearchPage from '@/pages/TripSearchPage';
+import Navbar from '@/components/shared/Navbar';
+import HomePage from '@/features/home/pages/HomePage';
+import LoginPage from '@/features/auth/pages/LoginPage';
+import RegisterPage from '@/features/auth/pages/RegisterPage';
+import VerifyEmailPage from '@/features/auth/pages/VerifyEmailPage';
+import ForgotPasswordPage from '@/features/auth/pages/ForgotPasswordPage';
+import ResetPasswordPage from '@/features/auth/pages/ResetPasswordPage';
+import TripSearchPage from '@/features/booking/pages/TripSearchPage';
 
 // Import các trang mới cho Booking & Vé
-import BookingPage from '@/pages/BookingPage';
-import BookingSuccessPage from '@/pages/BookingSuccessPage';
-import LookupTicketPage from '@/pages/LookupTicketPage';
-import TicketHistoryPage from '@/pages/TicketHistoryPage';
+import BookingPage from '@/features/booking/pages/BookingPage';
+import BookingSuccessPage from '@/features/booking/pages/BookingSuccessPage';
+import LookupTicketPage from '@/features/booking/pages/LookupTicketPage';
+import TicketHistoryPage from '@/features/booking/pages/TicketHistoryPage';
 
 import ProtectedRoute from '@/components/ProtectedRoute';
 
 // Admin Components
-import AdminLayout from '@/components/AdminLayout';
-import AdminDashboard from '@/pages/AdminDashboard';
-import BusManagement from '@/pages/admin/BusManagement';
-import RouteManagement from '@/pages/admin/RouteManagement';
-import TripManagement from '@/pages/admin/TripManagement';
+import AdminLayout from '@/components/shared/AdminLayout';
+import AdminDashboard from '@/features/admin/pages/AdminDashboard';
+import BusManagement from '@/features/admin/pages/BusManagement';
+import RouteManagement from '@/features/admin/pages/RouteManagement';
+import TripManagement from '@/features/admin/pages/TripManagement';
 
 import './App.css';
 

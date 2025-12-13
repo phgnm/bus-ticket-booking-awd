@@ -13,7 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { MapPin, Filter, ArrowRight, Bus, Wifi, Tv, Armchair } from 'lucide-react';
 
 // Custom Components
-import SeatSelector from '@/components/SeatSelector'; // Đảm bảo bạn đã tạo file này
+import SeatSelector from '@/components/shared/SeatSelector'; // Đảm bảo bạn đã tạo file này
 
 export default function TripSearchPage() {
     const [searchParams, setSearchParams] = useSearchParams();
