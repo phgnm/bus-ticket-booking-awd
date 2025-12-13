@@ -117,7 +117,6 @@ CREATE TABLE IF NOT EXISTS bookings (
     contact_email VARCHAR(255) NOT NULL,
     transaction_id VARCHAR(100),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(trip_id, seat_number) 
 );
 
 -- =================== SEED DATA ====================
@@ -201,3 +200,5 @@ CREATE INDEX IF NOT EXISTS idx_bookings_trip_id ON bookings(trip_id);
 CREATE INDEX IF NOT EXISTS idx_bookings_lookup ON bookings(booking_code, contact_email);
 
 CREATE INDEX IF NOT EXISTS idx_bookings_code ON bookings(booking_code);
+
+CREATE UNIQUE INDEX idx_unique_active_seat ON bookings (trip_id, seat_number) WHERE booking_status != 'CANCELLED';

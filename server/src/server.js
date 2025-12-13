@@ -1,6 +1,7 @@
 const http = require('http');
 const app = require('./app');
 const pool = require('./config/db');
+const initCronJobs = require('./cron/cronJob');
 const bcrypt = require('bcryptjs');
 const { Server } = require('socket.io');
 require('dotenv').config();
@@ -50,10 +51,19 @@ const createDefaultAdmin = async () => {
 };
 
 server.listen(PORT, async () => {
-    console.log(`Server is running on port ${PORT}`);
-    console.log(`API Endpoint: http://localhost:${PORT}`);
+    try {
+        await pool.query('SELECT 1');
+        console.log('✅ Database connected successfully');
+        
+        initCronJobs();
+        console.log(`Server is running on port ${PORT}`);
+        console.log(`API Endpoint: http://localhost:${PORT}`);
 
-    if (process.env.CI !== 'true') {
-        await createDefaultAdmin();
+        if (process.env.CI !== 'true') {
+            await createDefaultAdmin();
+        }
+    }
+    catch (err) {
+        console.error('❌ Database connection failed:', err);
     }
 });
