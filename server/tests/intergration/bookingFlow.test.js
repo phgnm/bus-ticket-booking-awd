@@ -12,6 +12,21 @@ jest.mock('../../src/utils/emailService', () => ({
     sendTicketEmail: jest.fn().mockResolvedValue(true),
 }));
 
+// Mock PayOS library config
+jest.mock('../../src/config/payos', () => ({
+    paymentRequests: {
+        create: jest.fn().mockResolvedValue({
+            checkoutUrl: 'https://mock-payos-checkout.com',
+        }),
+    },
+    webhooks: {
+        verify: jest.fn().mockReturnValue({
+            code: '00',
+            orderCode: 123456,
+        }),
+    },
+}));
+
 describe('Booking Flow', () => {
     let tripId;
     let bookingCode;
@@ -67,56 +82,13 @@ describe('Booking Flow', () => {
                 },
             });
 
-        // Because we integrated PayOS, it might return 200 with paymentUrl
-        // OR 500 if PayOS fails (mocking needed or handling error)
-        // In the logs, it returned 500 because PayOS failed: "Cổng thanh toán không tồn tại..."
-        // We should mock PayOS.paymentRequests.create to return a fake URL.
-
-        // However, if we want to fix the test logic to match current controller:
-        // The controller returns 200 on success (with paymentUrl), not 201.
-        // And it returns `booking_code` in the body.
-
-        if (res.statusCode === 500) {
-           console.warn("PayOS failed as expected in test env without mock. We will manually insert booking to continue tests.");
-           // Manually insert booking to proceed with other tests
-           const code = 'TEST-' + randomSuffix;
-           // Check if already inserted (retry case)
-           const existing = await pool.query('SELECT * FROM bookings WHERE trip_id = $1 AND seat_number IN ($2, $3)', [tripId, 'A1', 'A2']);
-           if (existing.rows.length === 0) {
-                await pool.query(
-                        `INSERT INTO bookings
-                        (trip_id, passenger_name, passenger_phone, seat_number, total_price, booking_code, contact_email, booking_status)
-                        VALUES
-                        ($1, 'John Doe', '0901234567', 'A1', 100000, $2, 'john@example.com', 'PAID'),
-                        ($1, 'John Doe', '0901234567', 'A2', 100000, $2, 'john@example.com', 'PAID')`,
-                        [tripId, code]
-                );
-           }
-           bookingCode = code;
-        } else {
-            expect(res.statusCode).toEqual(200);
-            expect(res.body.success).toBe(true);
-            // expect(res.body.paymentUrl).toBeDefined(); // If PayOS mock works
-            bookingCode = res.body.booking_code;
-        }
+        expect(res.statusCode).toEqual(200);
+        expect(res.body.success).toBe(true);
+        expect(res.body.paymentUrl).toBeDefined();
+        bookingCode = res.body.booking_code;
     });
 
     it('should FAIL to book already booked seats', async () => {
-        // Ensure we have a booking first (if the previous test failed to create via API)
-        if (!bookingCode) {
-             const code = 'TEST-FORCE-' + randomSuffix;
-             const existing = await pool.query('SELECT * FROM bookings WHERE trip_id = $1 AND seat_number = $2', [tripId, 'A1']);
-             if (existing.rows.length === 0) {
-                await pool.query(
-                    `INSERT INTO bookings
-                    (trip_id, passenger_name, passenger_phone, seat_number, total_price, booking_code, contact_email, booking_status)
-                    VALUES
-                    ($1, 'John Doe', '0901234567', 'A1', 100000, $2, 'john@example.com', 'PAID')`,
-                    [tripId, code]
-                );
-             }
-             bookingCode = code;
-        }
         const res = await request(app)
             .post('/api/bookings')
             .send({
