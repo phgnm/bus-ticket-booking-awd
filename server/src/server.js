@@ -16,6 +16,7 @@ const io = new Server(server, {
     cors: {
         origin: process.env.CLIENT_URL || 'http://localhost:5173', // Allow frontend
         methods: ['GET', 'POST'],
+        credentials: true,
     },
 });
 
@@ -54,16 +55,15 @@ server.listen(PORT, async () => {
     try {
         await pool.query('SELECT 1');
         console.log('✅ Database connected successfully');
-        
-        initCronJobs();
+
+        initCronJobs(io);
         console.log(`Server is running on port ${PORT}`);
         console.log(`API Endpoint: http://localhost:${PORT}`);
 
         if (process.env.CI !== 'true') {
             await createDefaultAdmin();
         }
-    }
-    catch (err) {
+    } catch (err) {
         console.error('❌ Database connection failed:', err);
     }
 });

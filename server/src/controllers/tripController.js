@@ -318,11 +318,9 @@ exports.createBooking = async (req, res) => {
         } else {
             // case: guest
             if (!guest_info || !guest_info.email || !guest_info.guest_id) {
-                return res
-                    .status(400)
-                    .json({
-                        msg: 'Thiếu thông tin khách hàng (Email/GuestID)',
-                    });
+                return res.status(400).json({
+                    msg: 'Thiếu thông tin khách hàng (Email/GuestID)',
+                });
             }
             redisOwnerId = guest_info.guest_id;
             contactEmail = guest_info.email;

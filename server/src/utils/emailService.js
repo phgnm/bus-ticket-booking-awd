@@ -77,13 +77,12 @@ const sendReminderEmail = async (toEmail, passengerName, tripInfo) => {
                     <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
                     <p style="font-size: 12px; color: #777; text-align: center;">Chúc bạn có một chuyến đi thượng lộ bình an!</p>
                 </div>
-            `
+            `,
         };
 
         await transporter.sendMail(mailOptions);
         console.log(`Reminder sent to ${toEmail}`);
-    }
-    catch (error) {
+    } catch (error) {
         console.error(`Error sending email: `, error);
     }
 };

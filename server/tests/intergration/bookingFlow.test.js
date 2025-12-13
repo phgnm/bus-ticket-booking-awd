@@ -136,9 +136,11 @@ describe('Booking Flow', () => {
             ]);
         }
         if (tripId) {
-             // Delete bookings for this trip first to avoid foreign key violation
-             await pool.query('DELETE FROM bookings WHERE trip_id = $1', [tripId]);
-             await pool.query('DELETE FROM trips WHERE id = $1', [tripId]);
+            // Delete bookings for this trip first to avoid foreign key violation
+            await pool.query('DELETE FROM bookings WHERE trip_id = $1', [
+                tripId,
+            ]);
+            await pool.query('DELETE FROM trips WHERE id = $1', [tripId]);
         }
         await pool.end();
     });

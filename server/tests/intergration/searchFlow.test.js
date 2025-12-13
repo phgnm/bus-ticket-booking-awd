@@ -132,14 +132,12 @@ describe('Trip Search API (User Flow)', () => {
     });
 
     it('4. Should FILTER by Price Range (Min/Max)', async () => {
-        const resCheap = await request(app)
-            .get('/api/trips')
-            .query({
-                from: locA_Id,
-                to: locB_Id,
-                date: dateString,
-                max_price: 300000,
-            });
+        const resCheap = await request(app).get('/api/trips').query({
+            from: locA_Id,
+            to: locB_Id,
+            date: dateString,
+            max_price: 300000,
+        });
 
         expect(resCheap.body.data.length).toBeGreaterThan(0);
         expect(resCheap.body.data.some((t) => t.trip_id === tripNormalId)).toBe(
@@ -151,14 +149,12 @@ describe('Trip Search API (User Flow)', () => {
     });
 
     it('5. Should FILTER by Bus Type', async () => {
-        const res = await request(app)
-            .get('/api/trips')
-            .query({
-                from: locA_Id,
-                to: locB_Id,
-                date: dateString,
-                bus_type: 'Sleeper',
-            });
+        const res = await request(app).get('/api/trips').query({
+            from: locA_Id,
+            to: locB_Id,
+            date: dateString,
+            bus_type: 'Sleeper',
+        });
 
         expect(res.body.data.some((t) => t.trip_id === tripVipId)).toBe(true);
         expect(res.body.data.some((t) => t.trip_id === tripNormalId)).toBe(
@@ -167,14 +163,12 @@ describe('Trip Search API (User Flow)', () => {
     });
 
     it('6. Should FILTER by Amenities (JSONB check)', async () => {
-        const res = await request(app)
-            .get('/api/trips')
-            .query({
-                from: locA_Id,
-                to: locB_Id,
-                date: dateString,
-                amenities: 'TV',
-            });
+        const res = await request(app).get('/api/trips').query({
+            from: locA_Id,
+            to: locB_Id,
+            date: dateString,
+            amenities: 'TV',
+        });
 
         expect(res.body.data.some((t) => t.trip_id === tripVipId)).toBe(true);
         expect(res.body.data.some((t) => t.trip_id === tripNormalId)).toBe(
@@ -183,15 +177,13 @@ describe('Trip Search API (User Flow)', () => {
     });
 
     it('7. Should SORT by Price ASC', async () => {
-        const res = await request(app)
-            .get('/api/trips')
-            .query({
-                from: locA_Id,
-                to: locB_Id,
-                date: dateString,
-                sort_by: 'price',
-                order: 'asc',
-            });
+        const res = await request(app).get('/api/trips').query({
+            from: locA_Id,
+            to: locB_Id,
+            date: dateString,
+            sort_by: 'price',
+            order: 'asc',
+        });
 
         const data = res.body.data;
         if (data.length >= 2) {
@@ -226,15 +218,13 @@ describe('Trip Search API (User Flow)', () => {
     });
 
     it('9. Should support Pagination', async () => {
-        const res = await request(app)
-            .get('/api/trips')
-            .query({
-                from: locA_Id,
-                to: locB_Id,
-                date: dateString,
-                limit: 1,
-                page: 1,
-            });
+        const res = await request(app).get('/api/trips').query({
+            from: locA_Id,
+            to: locB_Id,
+            date: dateString,
+            limit: 1,
+            page: 1,
+        });
 
         expect(res.body.data.length).toBe(1);
         expect(res.body.pagination).toBeDefined();

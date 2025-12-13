@@ -19,13 +19,47 @@ router.use(authenticateJWT, authorizeRole('admin'));
  * @swagger
  * /admin/stats:
  *   get:
- *     summary: Get admin dashboard statistics
- *     tags: [Admin]
+ *     summary: Get admin dashboard statistics with filters
+ *     tags:
+ *       - Admin
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: startDate
+ *         required: false
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Start date (YYYY-MM-DD)
+ *       - in: query
+ *         name: endDate
+ *         required: false
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: End date (YYYY-MM-DD)
+ *       - in: query
+ *         name: route_id
+ *         required: false
+ *         schema:
+ *           type: integer
+ *         description: Filter by route ID
+ *       - in: query
+ *         name: bus_id
+ *         required: false
+ *         schema:
+ *           type: integer
+ *         description: Filter by bus ID
+ *       - in: query
+ *         name: location_id
+ *         required: false
+ *         schema:
+ *           type: integer
+ *         description: Filter by location ID (route_from or route_to)
  *     responses:
  *       200:
- *         description: Statistics data
+ *         description: Dashboard statistics response
  *         content:
  *           application/json:
  *             schema:
@@ -33,27 +67,89 @@ router.use(authenticateJWT, authorizeRole('admin'));
  *               properties:
  *                 success:
  *                   type: boolean
+ *                   example: true
+ *                 filter:
+ *                   type: object
+ *                   properties:
+ *                     startDate:
+ *                       type: string
+ *                       example: "2024-06-01"
+ *                     endDate:
+ *                       type: string
+ *                       example: "2024-06-30"
+ *                     route_id:
+ *                       type: integer
+ *                       nullable: true
+ *                     bus_id:
+ *                       type: integer
+ *                       nullable: true
+ *                     location_id:
+ *                       type: integer
+ *                       nullable: true
  *                 data:
  *                   type: object
  *                   properties:
  *                     revenue:
  *                       type: number
+ *                       format: float
+ *                       example: 12500000
  *                     totalBookings:
- *                       type: number
+ *                       type: integer
+ *                       example: 320
  *                     activeBuses:
+ *                       type: integer
+ *                       example: 0
+ *                     occupancyRate:
  *                       type: number
+ *                       format: float
+ *                       example: 73.5
+ *                     cancelRate:
+ *                       type: number
+ *                       format: float
+ *                       example: 4.2
+ *                     revenueChart:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           date:
+ *                             type: string
+ *                             example: "15/06"
+ *                           value:
+ *                             type: number
+ *                             example: 450000
+ *                     topRoutes:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           route_name:
+ *                             type: string
+ *                             example: "HCM - Da Nang"
+ *                           ticket_count:
+ *                             type: integer
+ *                             example: 120
+ *                           revenue:
+ *                             type: number
+ *                             example: 3800000
+ *                     busPerformance:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           license_plate:
+ *                             type: string
+ *                             example: "51B-12345"
+ *                           trip_count:
+ *                             type: integer
+ *                             example: 18
+ *                           revenue:
+ *                             type: number
+ *                             example: 2200000
+ *       500:
+ *         description: Internal server error
  */
-// API for admin widget
-router.get('/admin/stats', (req, res) => {
-    res.json({
-        success: true,
-        data: {
-            revenue: 123456789,
-            totalBookings: 9876,
-            activeBuses: 123,
-        },
-    });
-});
+router.get('/admin/stats', adminController.getDashboardStats);
 
 /**
  * @swagger
