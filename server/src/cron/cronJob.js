@@ -40,7 +40,7 @@ const initCronJobs = (io) => {
                     Object.keys(seatsByTrip).forEach((tripId) => {
                         io.emit('seats_released', {
                             trip_id: tripId,
-                            seats: setasByTrip[tripId],
+                            seats: seatsByTrip[tripId],
                         });
 
                         console.log(
