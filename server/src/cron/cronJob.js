@@ -2,7 +2,7 @@ const cron = require('node-cron');
 const pool = require('../config/db');
 const { sendReminderEmail } = require('../utils/emailService');
 
-const initCronJobs = () => {
+const initCronJobs = (io) => {
     console.log('⏰ Cron Jobs initialized...');
 
     // JOB 1: Auto cancel unpaid bookings
@@ -23,6 +23,27 @@ const initCronJobs = () => {
             if (result.rows.length > 0) {
                 console.log(`♻️ Auto-cancelled ${result.rows.length} expired bookings.`);
 
+                if (io) {
+                    const seatsByTrip = {};
+
+                    // grouping seats by trips
+                    result.rows.forEach(row => {
+                        if (!seatsByTrip[row.trip_id]) {
+                            seatsByTrip[row.trip_id] = [];
+                        }
+                        seatsByTrip[row.trip_id].push(row.seat_number);
+                    });
+
+                    // emit event for each trip
+                    Object.keys(seatsByTrip).forEach(tripId =>{
+                        io.emit('seats_released', {
+                            trip_id: tripId,
+                            seats: setasByTrip[tripId]
+                        });
+                        
+                        console.log(`📡 Socket emitted 'seats_released' for trip ${tripId}:`, seatsByTrip[tripId]);
+                    })
+                }
             }
         }
         catch (err) {

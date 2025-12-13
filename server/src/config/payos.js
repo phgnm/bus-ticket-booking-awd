@@ -1,6 +1,6 @@
 const payosLib = require("@payos/node");
 
-// Vẫn giữ logic lấy Class an toàn này cho Node v22
+// use safe class for node v22
 const PayOS = payosLib.PayOS || payosLib.default || payosLib;
 
 // Use dummy values if env vars are missing to allow server/tests to start
