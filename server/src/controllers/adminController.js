@@ -33,13 +33,13 @@ const buildWhereClause = (queryParams, paramOffset = 1) => {
         idx++;
     }
 
-
-    return { 
-            whereSql: conditions.length > 0 ? 'AND ' + conditions.join(' AND ') : '', 
-            values, 
-            nextIdx: idx 
-        };
-}
+    return {
+        whereSql:
+            conditions.length > 0 ? 'AND ' + conditions.join(' AND ') : '',
+        values,
+        nextIdx: idx,
+    };
+};
 // == BUS MANAGEMENT ==
 exports.getBuses = async (req, res) => {
     try {
@@ -264,15 +264,17 @@ exports.getDashboardStats = async (req, res) => {
         const { startDate, endDate, route_id, bus_id, location_id } = req.query;
 
         // interval
-        let start = startDate ? new Date(startDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+        let start = startDate
+            ? new Date(startDate)
+            : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
         let end = endDate ? new Date(endDate) : new Date();
 
-        // chart format        
+        // chart format
         const diffDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
-        let chartFormat = 'DD/MM'; 
+        let chartFormat = 'DD/MM';
         let truncType = 'day';
 
-        if (diffDays <= 2) { 
+        if (diffDays <= 2) {
             chartFormat = 'HH24:00'; // Xem theo giờ nếu lọc < 2 ngày
             truncType = 'hour';
         } else if (diffDays > 60) {
@@ -286,16 +288,22 @@ exports.getDashboardStats = async (req, res) => {
             endDate: end.toISOString().split('T')[0],
             route_id,
             bus_id,
-            location_id
+            location_id,
         };
 
         const { whereSql, values } = buildWhereClause(filterParams, 1);
 
         // execute query
-        const [generalStats, chartStats, topRoutes, busPerformance, occupancyStats] = await Promise.all([
-            
+        const [
+            generalStats,
+            chartStats,
+            topRoutes,
+            busPerformance,
+            occupancyStats,
+        ] = await Promise.all([
             // general query
-            pool.query(`
+            pool.query(
+                `
                 SELECT 
                     COALESCE(SUM(CASE WHEN b.booking_status = 'PAID' THEN b.total_price ELSE 0 END), 0) as total_revenue,
                     COUNT(CASE WHEN b.booking_status = 'PAID' THEN 1 END) as total_bookings,
@@ -304,10 +312,13 @@ exports.getDashboardStats = async (req, res) => {
                 LEFT JOIN trips t ON b.trip_id = t.id
                 LEFT JOIN routes r ON t.route_id = r.id
                 WHERE 1=1 ${whereSql}
-            `, values),
+            `,
+                values,
+            ),
 
             // revenue chart
-            pool.query(`
+            pool.query(
+                `
                 SELECT 
                     TO_CHAR(b.created_at, '${chartFormat}') as date, 
                     COALESCE(SUM(b.total_price), 0) as value
@@ -317,10 +328,13 @@ exports.getDashboardStats = async (req, res) => {
                 WHERE b.booking_status = 'PAID' ${whereSql}
                 GROUP BY TO_CHAR(b.created_at, '${chartFormat}'), DATE_TRUNC('${truncType}', b.created_at)
                 ORDER BY DATE_TRUNC('${truncType}', b.created_at) ASC
-            `, values),
+            `,
+                values,
+            ),
 
             // top routes
-            pool.query(`
+            pool.query(
+                `
                 SELECT 
                     CONCAT(lf.name, ' - ', lt.name) as route_name,
                     COUNT(b.id) as ticket_count,
@@ -334,10 +348,13 @@ exports.getDashboardStats = async (req, res) => {
                 GROUP BY lf.name, lt.name
                 ORDER BY revenue DESC
                 LIMIT 5
-            `, values),
+            `,
+                values,
+            ),
 
             // bus performance
-            pool.query(`
+            pool.query(
+                `
                 SELECT 
                     bus.license_plate,
                     COUNT(DISTINCT t.id) as trip_count,
@@ -350,10 +367,13 @@ exports.getDashboardStats = async (req, res) => {
                 GROUP BY bus.license_plate
                 ORDER BY revenue DESC
                 LIMIT 5
-            `, values),
+            `,
+                values,
+            ),
 
             // occupancy rate
-            pool.query(`
+            pool.query(
+                `
                WITH FilteredTrips AS (
                     SELECT t.id, t.bus_id, bus.seat_capacity
                     FROM trips t
@@ -383,12 +403,24 @@ exports.getDashboardStats = async (req, res) => {
                          ELSE 0 
                     END as rate
                FROM Supply s, Demand d
-            `, [filterParams.startDate + ' 00:00:00', filterParams.endDate + ' 23:59:59']) 
+            `,
+                [
+                    filterParams.startDate + ' 00:00:00',
+                    filterParams.endDate + ' 23:59:59',
+                ],
+            ),
         ]);
 
         const stats = generalStats.rows[0];
-        const totalOps = parseInt(stats.total_bookings) + parseInt(stats.cancelled_bookings);
-        const cancelRate = totalOps > 0 ? ((parseInt(stats.cancelled_bookings) / totalOps) * 100).toFixed(1) : 0;
+        const totalOps =
+            parseInt(stats.total_bookings) + parseInt(stats.cancelled_bookings);
+        const cancelRate =
+            totalOps > 0
+                ? (
+                      (parseInt(stats.cancelled_bookings) / totalOps) *
+                      100
+                  ).toFixed(1)
+                : 0;
 
         res.json({
             success: true,
@@ -396,20 +428,19 @@ exports.getDashboardStats = async (req, res) => {
             data: {
                 revenue: parseFloat(stats.total_revenue),
                 totalBookings: parseInt(stats.total_bookings),
-                activeBuses: 0, 
+                activeBuses: 0,
                 occupancyRate: parseFloat(occupancyStats.rows[0]?.rate || 0),
                 cancelRate: parseFloat(cancelRate),
-                
+
                 revenueChart: chartStats.rows,
                 topRoutes: topRoutes.rows,
-                busPerformance: busPerformance.rows
-            }
+                busPerformance: busPerformance.rows,
+            },
         });
-    }
-    catch (err) {
+    } catch (err) {
         console.error(err);
         res.status(500).json({
-            msg: 'Lỗi khi lấy thống kê'
+            msg: 'Lỗi khi lấy thống kê',
         });
     }
 };

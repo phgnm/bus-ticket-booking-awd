@@ -21,13 +21,15 @@ const initCronJobs = (io) => {
             const result = await client.query(query);
 
             if (result.rows.length > 0) {
-                console.log(`♻️ Auto-cancelled ${result.rows.length} expired bookings.`);
+                console.log(
+                    `♻️ Auto-cancelled ${result.rows.length} expired bookings.`,
+                );
 
                 if (io) {
                     const seatsByTrip = {};
 
                     // grouping seats by trips
-                    result.rows.forEach(row => {
+                    result.rows.forEach((row) => {
                         if (!seatsByTrip[row.trip_id]) {
                             seatsByTrip[row.trip_id] = [];
                         }
@@ -35,18 +37,20 @@ const initCronJobs = (io) => {
                     });
 
                     // emit event for each trip
-                    Object.keys(seatsByTrip).forEach(tripId =>{
+                    Object.keys(seatsByTrip).forEach((tripId) => {
                         io.emit('seats_released', {
                             trip_id: tripId,
-                            seats: setasByTrip[tripId]
+                            seats: setasByTrip[tripId],
                         });
-                        
-                        console.log(`📡 Socket emitted 'seats_released' for trip ${tripId}:`, seatsByTrip[tripId]);
-                    })
+
+                        console.log(
+                            `📡 Socket emitted 'seats_released' for trip ${tripId}:`,
+                            seatsByTrip[tripId],
+                        );
+                    });
                 }
             }
-        }
-        catch (err) {
+        } catch (err) {
             console.error('❌ Error in Auto-Cancel Job:', err);
         } finally {
             client.release();
@@ -54,7 +58,7 @@ const initCronJobs = (io) => {
     });
 
     // JOB 2: Send trip reminder
-    cron.schedule('*/10 * * * *', async() => {
+    cron.schedule('*/10 * * * *', async () => {
         const client = await pool.connect();
         try {
             const query = `
@@ -77,23 +81,28 @@ const initCronJobs = (io) => {
             const result = await client.query(query);
 
             if (result.rows.length > 0) {
-                console.log(`🔔 Sending reminders for ${result.rows.length} bookings...`);
+                console.log(
+                    `🔔 Sending reminders for ${result.rows.length} bookings...`,
+                );
 
-                const emailPromises = result.rows.map(booking => {
+                const emailPromises = result.rows.map((booking) => {
                     const tripInfo = {
                         from: booking.from_loc,
                         to: booking.to_loc,
                         departure_time: booking.departure_time,
                         license_plate: booking.license_plate,
-                        seats: booking.seat_number
+                        seats: booking.seat_number,
                     };
-                    return sendReminderEmail(booking.contact_email, booking.passenger_name, tripInfo);
+                    return sendReminderEmail(
+                        booking.contact_email,
+                        booking.passenger_name,
+                        tripInfo,
+                    );
                 });
 
                 await Promise.all(emailPromises);
             }
-        }
-        catch (err) {
+        } catch (err) {
             console.error('❌ Error in Reminder Job:', err);
         } finally {
             client.release();

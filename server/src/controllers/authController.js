@@ -107,11 +107,9 @@ exports.login = async (req, res) => {
 
         // Check if user activated
         if (!user.rows[0].is_verified && !user.rows[0].google_id) {
-            return res
-                .status(400)
-                .json({
-                    msg: 'Tài khoản chưa được kích hoạt. Vui lòng kiểm tra email.',
-                });
+            return res.status(400).json({
+                msg: 'Tài khoản chưa được kích hoạt. Vui lòng kiểm tra email.',
+            });
         }
 
         // Check password
@@ -229,11 +227,9 @@ exports.verifyEmail = async (req, res) => {
         );
 
         if (user.rows.length === 0) {
-            return res
-                .status(400)
-                .json({
-                    msg: 'Token không hợp lệ hoặc tài khoản đã được kích hoạt',
-                });
+            return res.status(400).json({
+                msg: 'Token không hợp lệ hoặc tài khoản đã được kích hoạt',
+            });
         }
 
         // Activate account, delete token

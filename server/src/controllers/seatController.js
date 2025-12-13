@@ -42,12 +42,10 @@ exports.lockSeat = async (req, res) => {
                 const holder = await redisClient.get(key);
                 if (holder === userId) await redisClient.del(key);
             }
-            return res
-                .status(409)
-                .json({
-                    msg: 'Some seats are already locked',
-                    unavailableSeats,
-                });
+            return res.status(409).json({
+                msg: 'Some seats are already locked',
+                unavailableSeats,
+            });
         }
 
         // Emit socket event to notify others (optional, frontend can listen)

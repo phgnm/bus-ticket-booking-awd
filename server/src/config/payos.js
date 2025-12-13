@@ -1,4 +1,4 @@
-const payosLib = require("@payos/node");
+const payosLib = require('@payos/node');
 
 // use safe class for node v22
 const PayOS = payosLib.PayOS || payosLib.default || payosLib;
@@ -8,14 +8,20 @@ const clientId = process.env.PAYOS_CLIENT_ID || 'DUMMY_CLIENT_ID';
 const apiKey = process.env.PAYOS_API_KEY || 'DUMMY_API_KEY';
 const checksumKey = process.env.PAYOS_CHECKSUM_KEY || 'DUMMY_CHECKSUM_KEY';
 
-if (!process.env.PAYOS_CLIENT_ID || !process.env.PAYOS_API_KEY || !process.env.PAYOS_CHECKSUM_KEY) {
-    console.warn("⚠️ [ENV WARNING] Thiếu biến môi trường PAYOS. Sử dụng giá trị giả lập.");
+if (
+    !process.env.PAYOS_CLIENT_ID ||
+    !process.env.PAYOS_API_KEY ||
+    !process.env.PAYOS_CHECKSUM_KEY
+) {
+    console.warn(
+        '⚠️ [ENV WARNING] Thiếu biến môi trường PAYOS. Sử dụng giá trị giả lập.',
+    );
 }
 
 const payos = new PayOS({
     clientId,
     apiKey,
-    checksumKey
+    checksumKey,
 });
 
 module.exports = payos;

@@ -15,14 +15,14 @@ exports.receiveWebHook = async (req, res) => {
             const client = await pool.connect();
             try {
                 await client.query('BEGIN');
-                
+
                 // Update status
                 const updateRes = await client.query(
                     `UPDATE bookings 
                      SET booking_status = 'PAID' 
                      WHERE transaction_id = $1 AND booking_status = 'PENDING_PAYMENT'
-                     RETURNING booking_code, contact_email, passenger_name`, 
-                    [String(orderCode)]
+                     RETURNING booking_code, contact_email, passenger_name`,
+                    [String(orderCode)],
                 );
 
                 if (updateRes.rows.length > 0) {
@@ -51,9 +51,11 @@ exports.receiveWebHook = async (req, res) => {
                         GROUP BY b.trip_id, b.passenger_name, b.passenger_phone, b.contact_email, 
                                  t.departure_time, bus.license_plate, lf.name, lt.name
                     `;
-                    
-                    const tripRes = await client.query(tripQuery, [bookingCode]);
-                    
+
+                    const tripRes = await client.query(tripQuery, [
+                        bookingCode,
+                    ]);
+
                     if (tripRes.rows.length > 0) {
                         const tripData = tripRes.rows[0];
 
@@ -67,47 +69,48 @@ exports.receiveWebHook = async (req, res) => {
                             to: tripData.to_loc,
                             departure_time: tripData.departure_time,
                             license_plate: tripData.license_plate,
-                            seats: tripData.seats, 
-                            total_price: parseFloat(tripData.total_price) 
+                            seats: tripData.seats,
+                            total_price: parseFloat(tripData.total_price),
                         };
 
                         // 5. Emit socket event
                         const io = req.app.get('io');
                         if (io) {
-                            io.emit('seats_booked', { 
-                                trip_id: tripData.trip_id, 
-                                seats: tripData.seats 
+                            io.emit('seats_booked', {
+                                trip_id: tripData.trip_id,
+                                seats: tripData.seats,
                             });
                         }
 
                         // 6. Send Email (Async)
                         generateTicketPDF(fullBookingData)
-                            .then(pdfBuffer => {
+                            .then((pdfBuffer) => {
                                 return sendTicketEmail(
                                     fullBookingData.contact_email,
                                     bookingCode,
                                     pdfBuffer,
-                                    fullBookingData
+                                    fullBookingData,
                                 );
                             })
-                            .catch(err => console.error('Background Email Error:', err));
-                        
+                            .catch((err) =>
+                                console.error('Background Email Error:', err),
+                            );
+
                         console.log(`✅ Payment success for: ${bookingCode}`);
                     }
                 }
-                
+
                 await client.query('COMMIT');
             } catch (err) {
                 await client.query('ROLLBACK');
-                console.error("Lỗi xử lý DB trong webhook:", err);
+                console.error('Lỗi xử lý DB trong webhook:', err);
             } finally {
                 client.release();
             }
         }
         res.json({ success: true });
-    }
-    catch (err) {
-        console.error("Lỗi webhook:", err);
+    } catch (err) {
+        console.error('Lỗi webhook:', err);
         res.json({ success: false });
     }
-}
+};

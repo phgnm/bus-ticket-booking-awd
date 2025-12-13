@@ -90,7 +90,7 @@ exports.createBooking = async (req, res) => {
             AND seat_number = ANY($2) 
             AND booking_status != 'CANCELLED'  -- Thêm dòng này vào
             FOR UPDATE`,
-            [trip_id, seats]
+            [trip_id, seats],
         );
 
         if (seatCheck.rows.length > 0) {
@@ -123,7 +123,9 @@ exports.createBooking = async (req, res) => {
         const totalPrice = tripInfo.price_base; // Price per seat
         const totalOrderAmount = totalPrice * seats.length;
 
-        const orderCode = Number(String(Date.now()).slice(-6) + Math.floor(Math.random() * 1000));
+        const orderCode = Number(
+            String(Date.now()).slice(-6) + Math.floor(Math.random() * 1000),
+        );
 
         // 3. Insert Bookings
         for (const seat of seats) {
@@ -131,7 +133,16 @@ exports.createBooking = async (req, res) => {
                 `INSERT INTO bookings
                 (trip_id, passenger_name, passenger_phone, seat_number, total_price, booking_code, contact_email, booking_status, transaction_id)
                 VALUES ($1, $2, $3, $4, $5, $6, $7, 'PENDING_PAYMENT', $8)`,
-                [trip_id, passenger_info.name, passenger_info.phone, seat, totalPrice, bookingCode, passenger_info.email, orderCode]
+                [
+                    trip_id,
+                    passenger_info.name,
+                    passenger_info.phone,
+                    seat,
+                    totalPrice,
+                    bookingCode,
+                    passenger_info.email,
+                    orderCode,
+                ],
             );
         }
 
@@ -152,8 +163,8 @@ exports.createBooking = async (req, res) => {
         res.status(200).json({
             success: true,
             msg: 'Đang chuyển hướng thanh toán...',
-            paymentUrl: paymentLinkData.checkoutUrl, 
-            booking_code: bookingCode
+            paymentUrl: paymentLinkData.checkoutUrl,
+            booking_code: bookingCode,
         });
     } catch (err) {
         await client.query('ROLLBACK');
