@@ -144,6 +144,36 @@ router.get('/lookup', bookingController.lookupBooking);
  */
 router.post('/', bookingController.createBooking);
 
+/**
+ * @swagger
+ * /bookings/payment-webhook:
+ *   post:
+ *     summary: Receive payment webhook from PayOS
+ *     tags: [Bookings]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               code:
+ *                 type: string
+ *               desc:
+ *                 type: string
+ *               data:
+ *                 type: object
+ *     responses:
+ *       200:
+ *         description: Webhook received successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ */
 router.post('/payment-webhook', paymentController.receiveWebHook);
 
 module.exports = router;

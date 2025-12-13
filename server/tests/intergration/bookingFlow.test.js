@@ -1,11 +1,34 @@
+
+const PayOS = require('@payos/node');
+
+// Mock create method directly on paymentRequests
+const mockCreate = jest.fn().mockResolvedValue({
+    checkoutUrl: 'https://pay.payos.vn/web/123456',
+    paymentLinkId: '123456',
+    status: 'PENDING',
+    checkoutUrl: 'http://test-payment-url.com'
+});
+
+// Mock the PayOS class
+jest.mock('@payos/node', () => {
+    return jest.fn().mockImplementation(() => {
+        return {
+            paymentRequests: {
+                create: mockCreate
+            },
+            webhooks: {
+                verify: jest.fn().mockReturnValue({
+                    code: '00',
+                    desc: 'Success'
+                })
+            }
+        };
+    });
+});
+
 const request = require('supertest');
 const app = require('../../src/app');
 const pool = require('../../src/config/db');
-
-// Mock socket.io in app if needed, but integration tests usually spin up the app.
-// Since we modify app.js/server.js to attach io, it might be tricky in supertest.
-// However, req.app.get('io') will just be undefined or we can mock it.
-// The controller checks `if (io)`.
 
 // Mock email service to avoid sending real emails
 jest.mock('../../src/utils/emailService', () => ({
@@ -67,13 +90,24 @@ describe('Booking Flow', () => {
                 },
             });
 
-        expect(res.statusCode).toEqual(201);
+        // Check for 200 OK because the controller returns 200 with paymentUrl
+        // The original test expected 201 but the controller returns 200.
+        // Also the controller response structure: { success: true, msg: '...', paymentUrl: '...', booking_code: '...' }
+
+        expect(res.statusCode).toEqual(200);
         expect(res.body.success).toBe(true);
-        expect(res.body.data.booking_code).toBeDefined();
-        bookingCode = res.body.data.booking_code;
+        expect(res.body.booking_code).toBeDefined();
+        expect(res.body.paymentUrl).toBeDefined();
+
+        bookingCode = res.body.booking_code;
     });
 
     it('should FAIL to book already booked seats', async () => {
+        // Need to set status to something other than CANCELLED to trigger conflict?
+        // Wait, the first test creates bookings with PENDING_PAYMENT status.
+        // The seat check query filters `booking_status != 'CANCELLED'`.
+        // So PENDING_PAYMENT should block new bookings.
+
         const res = await request(app)
             .post('/api/bookings')
             .send({
@@ -115,10 +149,16 @@ describe('Booking Flow', () => {
 
     afterAll(async () => {
         // Cleanup
-        await pool.query('DELETE FROM bookings WHERE booking_code = $1', [
-            bookingCode,
-        ]);
-        await pool.query('DELETE FROM trips WHERE id = $1', [tripId]);
+        if (bookingCode) {
+            await pool.query('DELETE FROM bookings WHERE booking_code = $1', [
+                bookingCode,
+            ]);
+        }
+        if (tripId) {
+            // Need to delete bookings first if no cascade
+             await pool.query('DELETE FROM bookings WHERE trip_id = $1', [tripId]);
+            await pool.query('DELETE FROM trips WHERE id = $1', [tripId]);
+        }
         // Cascade delete should handle others if set, or we leave them.
         await pool.end();
     });

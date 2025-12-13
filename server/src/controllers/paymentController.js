@@ -26,6 +26,7 @@ exports.receiveWebHook = async (req, res) => {
                 );
 
                 if (updateRes.rows.length > 0) {
+                    const bookingCode = updateRes.rows[0].booking_code;
 
                     // 3. Re-query DB
                     const tripQuery = `

@@ -1,8 +1,6 @@
 const pool = require('../config/db');
 const payos = require('../config/payos');
 const { generateBookingCode } = require('../utils/bookingCode');
-const { generateTicketPDF } = require('../utils/ticketGenerator');
-const { sendTicketEmail } = require('../utils/emailService');
 
 exports.lookupBooking = async (req, res) => {
     try {
