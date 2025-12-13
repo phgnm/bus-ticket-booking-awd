@@ -1,22 +1,13 @@
-const pool = require('../config/db');
+const locationService = require('../services/locationService');
 
 exports.getLocations = async (req, res) => {
     try {
         const { keyword } = req.query;
-        let query = 'SELECT * FROM locations';
-        const params = [];
+        const data = await locationService.getLocations(keyword);
 
-        if (keyword) {
-            query += ' WHERE name ILIKE $1';
-            params.push(`%${keyword}%`);
-        }
-
-        query += ' ORDER BY name ASC';
-
-        const result = await pool.query(query, params);
         res.json({
             success: true,
-            data: result.rows,
+            data: data,
         });
     } catch (err) {
         console.error(err);
