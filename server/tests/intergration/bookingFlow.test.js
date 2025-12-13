@@ -12,6 +12,21 @@ jest.mock('../../src/utils/emailService', () => ({
     sendTicketEmail: jest.fn().mockResolvedValue(true),
 }));
 
+// Mock PayOS library config
+jest.mock('../../src/config/payos', () => ({
+    paymentRequests: {
+        create: jest.fn().mockResolvedValue({
+            checkoutUrl: 'https://mock-payos-checkout.com',
+        }),
+    },
+    webhooks: {
+        verify: jest.fn().mockReturnValue({
+            code: '00',
+            orderCode: 123456,
+        }),
+    },
+}));
+
 describe('Booking Flow', () => {
     let tripId;
     let bookingCode;
@@ -67,10 +82,10 @@ describe('Booking Flow', () => {
                 },
             });
 
-        expect(res.statusCode).toEqual(201);
+        expect(res.statusCode).toEqual(200);
         expect(res.body.success).toBe(true);
-        expect(res.body.data.booking_code).toBeDefined();
-        bookingCode = res.body.data.booking_code;
+        expect(res.body.paymentUrl).toBeDefined();
+        bookingCode = res.body.booking_code;
     });
 
     it('should FAIL to book already booked seats', async () => {
@@ -115,11 +130,16 @@ describe('Booking Flow', () => {
 
     afterAll(async () => {
         // Cleanup
-        await pool.query('DELETE FROM bookings WHERE booking_code = $1', [
-            bookingCode,
-        ]);
-        await pool.query('DELETE FROM trips WHERE id = $1', [tripId]);
-        // Cascade delete should handle others if set, or we leave them.
+        if (bookingCode) {
+            await pool.query('DELETE FROM bookings WHERE booking_code = $1', [
+                bookingCode,
+            ]);
+        }
+        if (tripId) {
+             // Delete bookings for this trip first to avoid foreign key violation
+             await pool.query('DELETE FROM bookings WHERE trip_id = $1', [tripId]);
+             await pool.query('DELETE FROM trips WHERE id = $1', [tripId]);
+        }
         await pool.end();
     });
 });

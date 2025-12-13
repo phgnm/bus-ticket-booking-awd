@@ -144,6 +144,73 @@ router.get('/lookup', bookingController.lookupBooking);
  */
 router.post('/', bookingController.createBooking);
 
+/**
+ * @swagger
+ * /bookings/payment-webhook:
+ *   post:
+ *     summary: Receive payment webhook from PayOS
+ *     tags: [Bookings]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               code:
+ *                 type: string
+ *               desc:
+ *                 type: string
+ *               data:
+ *                 type: object
+ *                 properties:
+ *                   orderCode:
+ *                     type: integer
+ *                   amount:
+ *                     type: integer
+ *                   description:
+ *                     type: string
+ *                   accountNumber:
+ *                     type: string
+ *                   reference:
+ *                     type: string
+ *                   transactionDateTime:
+ *                     type: string
+ *                   currency:
+ *                     type: string
+ *                   paymentLinkId:
+ *                     type: string
+ *                   code:
+ *                     type: string
+ *                   desc:
+ *                     type: string
+ *                   counterAccountBankId:
+ *                     type: string
+ *                   counterAccountBankName:
+ *                     type: string
+ *                   counterAccountName:
+ *                     type: string
+ *                   counterAccountNumber:
+ *                     type: string
+ *                   virtualAccountName:
+ *                     type: string
+ *                   virtualAccountNumber:
+ *                     type: string
+ *               signature:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Webhook received successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *       500:
+ *         description: Server error
+ */
 router.post('/payment-webhook', paymentController.receiveWebHook);
 
 module.exports = router;

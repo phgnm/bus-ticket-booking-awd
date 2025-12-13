@@ -116,7 +116,7 @@ CREATE TABLE IF NOT EXISTS bookings (
     booking_code VARCHAR(20) NOT NULL,
     contact_email VARCHAR(255) NOT NULL,
     transaction_id VARCHAR(100),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- =================== SEED DATA ====================
