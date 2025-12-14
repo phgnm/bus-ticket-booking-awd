@@ -17,6 +17,7 @@ exports.register = async (req, res) => {
 
 exports.login = async (req, res) => {
     try {
+        console.log('[AuthController] Login attempt for:', req.body.email);
         const { accessToken, refreshToken, user } = await authService.login(
             req.body,
         );
