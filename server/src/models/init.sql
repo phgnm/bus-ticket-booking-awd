@@ -216,3 +216,12 @@ CREATE INDEX IF NOT EXISTS idx_bookings_lookup ON bookings(booking_code, contact
 CREATE INDEX IF NOT EXISTS idx_bookings_code ON bookings(booking_code);
 
 CREATE UNIQUE INDEX idx_unique_active_seat ON bookings (trip_id, seat_number) WHERE booking_status != 'CANCELLED';
+
+-- Additional optimization indexes
+CREATE INDEX IF NOT EXISTS idx_routes_price ON routes(price_base);
+CREATE INDEX IF NOT EXISTS idx_buses_type ON buses(type);
+CREATE INDEX IF NOT EXISTS idx_bookings_user_id ON bookings(user_id);
+
+-- Optional: For text search if pg_trgm is available (commented out to be safe unless extension is enabled)
+-- CREATE EXTENSION IF NOT EXISTS pg_trgm;
+-- CREATE INDEX IF NOT EXISTS idx_locations_name_trgm ON locations USING gin (name gin_trgm_ops);

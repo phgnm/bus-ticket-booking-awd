@@ -26,4 +26,12 @@ const pool = new Pool({
     connectionTimeoutMillis: 2000,
 });
 
+pool.on('error', (err, client) => {
+    console.error('❌ Unexpected error on idle client', err);
+});
+
+pool.on('connect', () => {
+    // console.log('✅ DB Connected'); // Too noisy for every connection
+});
+
 module.exports = pool;

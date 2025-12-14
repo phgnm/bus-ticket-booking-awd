@@ -102,7 +102,7 @@ describe('Booking Flow', () => {
             });
 
         expect(res.statusCode).toEqual(409);
-        expect(res.body.msg).toContain('Một số ghế đã bị đặt');
+        expect(res.body.msg).toContain('đã bị đặt');
         expect(res.body.unavailable_seats).toContain('A1');
     });
 

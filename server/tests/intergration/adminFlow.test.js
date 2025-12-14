@@ -88,23 +88,6 @@ describe('Admin Management Flow', () => {
                 price_base: 250000,
                 points: [],
             });
-
-        // Assuming the DB schema has NOT NULL constraints, this should fail.
-        // Or if there is validation logic.
-        // Based on controller: it tries to insert immediately.
-        // DB constraints: route_from and route_to are FKs but not explicitly NOT NULL in CREATE TABLE?
-        // Let's check init.sql:
-        // route_from INT REFERENCES locations(id),
-        // price_base DECIMAL(10, 2) NOT NULL
-        // If route_from is missing, it might be NULL.
-        // However, let's assume we want it to fail or at least test what happens.
-        // If the controller doesn't validate, it might return 500 or 201 depending on DB.
-
-        // Actually, looking at the code, if `route_from` is missing, it will be undefined.
-        // The query uses $1, $2 etc.
-        // If I send null/undefined, pg might complain or insert NULL.
-        // Let's force a failure by sending an invalid type or violating a constraint if possible.
-        // Creating a route with invalid location ID (FK violation) is a good test.
     });
 
     it('should FAIL to create a new route with invalid location IDs', async () => {
@@ -119,8 +102,10 @@ describe('Admin Management Flow', () => {
                 price_base: 250000,
             });
 
-        expect(res.statusCode).toEqual(500); // Controller catches error and returns 500
-        expect(res.body.msg).toBe('Lỗi khi tạo tuyến đường');
+        expect(res.statusCode).toEqual(400);
+        expect(res.body.msg).toBe(
+            'Địa điểm đi hoặc đến không tồn tại trong hệ thống',
+        );
     });
 
     it('should create a new route', async () => {
