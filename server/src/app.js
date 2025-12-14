@@ -38,6 +38,14 @@ app.use(hpp());
 app.use(cookieParser());
 app.use(express.json());
 
+// Debug Middleware: Log all requests
+if (process.env.NODE_ENV !== 'production') {
+    app.use((req, res, next) => {
+        console.log(`[REQUEST] ${req.method} ${req.url}`);
+        next();
+    });
+}
+
 // Swagger UI
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
@@ -50,5 +58,14 @@ app.use('/api/trips', tripRoutes);
 app.use('/api/locations', locationRoutes);
 app.use('/api', adminRoutes);
 app.use('/api', limiter);
+
+// Global Error Handler
+app.use((err, req, res, next) => {
+    console.error('❌ GLOBAL ERROR HANDLER:', err);
+    res.status(500).json({
+        msg: 'Internal Server Error',
+        error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+});
 
 module.exports = app;
