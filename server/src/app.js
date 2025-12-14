@@ -1,14 +1,18 @@
 const express = require('express');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
+
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./config/swagger');
+
+const aiRoutes = require('./routes/aiRoutes');
 const authRoutes = require('./routes/authRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const bookingRoutes = require('./routes/bookingRoutes');
 const seatRoutes = require('./routes/seatRoutes');
-const cookieParser = require('cookie-parser');
 const tripRoutes = require('./routes/tripRoutes');
 const locationRoutes = require('./routes/locationRoutes');
-const swaggerUi = require('swagger-ui-express');
-const swaggerSpec = require('./config/swagger');
+
 
 const app = express();
 
@@ -24,6 +28,8 @@ app.use(express.json());
 // Swagger UI
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
+// APIs
+app.use('/api/ai', aiRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/seats', seatRoutes);
