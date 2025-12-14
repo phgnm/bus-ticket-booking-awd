@@ -21,7 +21,14 @@
     "lint-staged": "^16.2.7"
   },
   "lint-staged": {
-    "server/**/*.js": ["cd server && npm run lint"],
-    "client/**/*.{js,jsx,ts,tsx}": ["cd client && npm run lint"]
+    "server/**/*.js": [
+      "cd server && npm run lint"
+    ],
+    "client/**/*.{js,jsx,ts,tsx}": [
+      "cd client && npm run lint"
+    ]
+  },
+  "dependencies": {
+    "openai": "^6.10.0"
   }
 }

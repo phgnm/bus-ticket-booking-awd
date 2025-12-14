@@ -1,3 +1,7 @@
+const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
+const xss = require('xss-clean');
+const hpp = require('hpp');
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
@@ -16,12 +20,21 @@ const locationRoutes = require('./routes/locationRoutes');
 
 const app = express();
 
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    message: 'Quá nhiều request, vui lòng thử lại sau vài phút'
+});
+
 app.use(
     cors({
         origin: 'http://localhost:5173',
         credentials: true,
     }),
 );
+app.use(helmet());
+app.use(xss());
+app.use(hpp());
 app.use(cookieParser());
 app.use(express.json());
 
@@ -36,5 +49,6 @@ app.use('/api/seats', seatRoutes);
 app.use('/api/trips', tripRoutes);
 app.use('/api/locations', locationRoutes);
 app.use('/api', adminRoutes);
+app.use('/api', limiter);
 
 module.exports = app;
