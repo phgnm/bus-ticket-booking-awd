@@ -1,4 +1,3 @@
-const { GoogleGenerativeAI } = require("@google/generative-ai");
 const model = require('../config/gemini');
 const tripService = require('./tripService');
 const locationRepository = require('../repositories/locationRepository');
