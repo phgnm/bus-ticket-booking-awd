@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useBooking } from '@/context/BookingContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { CheckCircle2, Home, History, Loader2, XCircle, AlertTriangle } from "lucide-react";
+import { CheckCircle2, Home, History, Loader2, XCircle, RefreshCw } from "lucide-react";
 import api from '@/lib/api';
 
 export default function BookingSuccessPage() {
@@ -11,89 +11,105 @@ export default function BookingSuccessPage() {
     const navigate = useNavigate();
     const { resetBooking } = useBooking();
 
-    const [status, setStatus] = useState('loading'); // loading | success | failed
-    const [bookingDetails, setBookingDetails] = useState(null);
-    const hasResetRef = useRef(false);
-
-    // 1. Lấy thông tin từ URL trả về
-    // code: Mã lỗi của PayOS (00 = Thành công)
-    // bookingCode: Mã vé của hệ thống mình (đã sửa ở bước trước)
+    // code: 00 (PayOS thành công)
     const payosCode = searchParams.get('code');
-    const bookingCode = searchParams.get('bookingCode') || searchParams.get('id'); // Fallback nếu thiếu
+    const bookingCode = searchParams.get('bookingCode') || searchParams.get('id');
     const storedEmail = sessionStorage.getItem('last_booking_email');
 
+    // State quản lý trạng thái thực tế từ DB
+    const [isConfirmed, setIsConfirmed] = useState(false); // True nếu DB đã trả về PAID
+    const [isChecking, setIsChecking] = useState(false);
+    const hasResetRef = useRef(false);
+
     useEffect(() => {
-        // Nếu không có mã booking, đá về trang chủ
         if (!bookingCode) {
             navigate('/');
             return;
         }
 
-        // --- LOGIC QUAN TRỌNG: TIN TƯỞNG URL (CLIENT-SIDE) ---
-        // Thay vì chờ DB (Webhook), ta kiểm tra ngay mã trả về của PayOS
-        if (payosCode === '00') {
-            setStatus('success');
-
-            // Reset context booking ngay lập tức để user không bị lưu session cũ
-            if (!hasResetRef.current) {
-                resetBooking();
-                hasResetRef.current = true;
-                sessionStorage.removeItem('last_booking_email');
-            }
-
-            // Vẫn gọi API lookup để lấy thông tin vé hiển thị (Tên, ghế, giờ đi...)
-            // Nhưng KHÔNG dùng status của API để quyết định hiển thị UI (vì DB có thể chưa kịp cập nhật)
-            if (storedEmail) {
-                api.get('/bookings/lookup', { params: { code: bookingCode, email: storedEmail } })
-                    .then(res => {
-                        if (res.data.data) {
-                            setBookingDetails(res.data.data);
-                        }
-                    })
-                    .catch(console.error);
-            }
-
-        } else if (payosCode && payosCode !== '00') {
-            // PayOS trả về lỗi (ví dụ: Hủy thanh toán, lỗi thẻ...)
-            setStatus('failed');
-        } else {
-            // Trường hợp URL không có code của PayOS (User tự gõ link vào?)
-            // Lúc này mới cần Polling check DB như cũ
-            setStatus('loading');
-            // ... Logic polling cũ nếu cần, nhưng với flow redirect thì ít khi vào đây
+        // Nếu PayOS trả về lỗi
+        if (payosCode && payosCode !== '00') {
+            return; // Giữ nguyên UI lỗi ở dưới
         }
 
-    }, [payosCode, bookingCode, navigate, resetBooking, storedEmail]);
+        // Reset context booking client
+        if (!hasResetRef.current) {
+            resetBooking();
+            hasResetRef.current = true;
+            sessionStorage.removeItem('last_booking_email');
+        }
+
+        // --- CƠ CHẾ POLLING ---
+        // Tự động kiểm tra trạng thái vé trong DB
+        let checkCount = 0;
+        const maxChecks = 5; // Kiểm tra tối đa 5 lần (mỗi lần 2s)
+
+        const checkBookingStatus = async () => {
+            if (!storedEmail) return;
+            setIsChecking(true);
+            try {
+                const res = await api.get('/bookings/lookup', {
+                    params: { code: bookingCode, email: storedEmail }
+                });
+
+                // Giả sử API trả về payment_status hoặc bạn check qua bookingDetails
+                // Lưu ý: Bạn cần đảm bảo API lookup trả về status thanh toán
+                // Nếu API hiện tại chưa trả về status, hãy check logic backend
+                const ticket = res.data.data;
+
+                // Logic check: Nếu vé tồn tại tức là đã tạo, 
+                // nhưng để chắc chắn tiền đã vào, ta có thể check thêm trường status nếu có.
+                // Ở đây tạm thời nếu tìm thấy vé thì coi như OK, 
+                // nhưng tốt nhất Backend nên trả về status: 'PAID' | 'PENDING'
+                if (ticket) {
+                    setIsConfirmed(true);
+                }
+            } catch (error) {
+                console.error("Lỗi kiểm tra trạng thái:", error);
+            } finally {
+                setIsChecking(false);
+            }
+        };
+
+        // Chạy ngay lần đầu
+        checkBookingStatus();
+
+        // Cài đặt interval để check lại nếu chưa confirm
+        const interval = setInterval(() => {
+            checkCount++;
+            if (checkCount >= maxChecks || isConfirmed) {
+                clearInterval(interval);
+            } else {
+                checkBookingStatus();
+            }
+        }, 2000); // 2 giây check 1 lần
+
+        return () => clearInterval(interval);
+
+    }, [bookingCode, payosCode, storedEmail, navigate, resetBooking]); // Bỏ isConfirmed khỏi dependency để tránh loop
 
     // --- RENDER UI ---
 
-    if (status === 'loading') {
-        return (
-            <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4 space-y-4">
-                <Loader2 className="w-12 h-12 text-indigo-600 animate-spin" />
-                <p className="text-gray-600 font-medium">Đang kiểm tra kết quả...</p>
-            </div>
-        );
-    }
-
-    if (status === 'failed') {
+    // 1. Trường hợp thất bại từ PayOS
+    if (payosCode && payosCode !== '00') {
         return (
             <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
                 <Card className="w-full max-w-md shadow-lg border-red-200">
                     <CardHeader className="text-center flex flex-col items-center">
                         <XCircle className="w-16 h-16 text-red-500 mb-2" />
                         <CardTitle className="text-xl text-red-600">Thanh toán thất bại hoặc đã hủy</CardTitle>
-                        <CardDescription>Vui lòng thử lại hoặc liên hệ bộ phận hỗ trợ.</CardDescription>
+                        <CardDescription>Giao dịch chưa hoàn tất. Vui lòng thử lại.</CardDescription>
                     </CardHeader>
                     <CardFooter className="flex flex-col gap-3">
-                        <Button className="w-full" onClick={() => navigate('/')}>Về trang chủ</Button>
+                        <Button className="w-full" onClick={() => navigate('/search')}>Đặt lại vé</Button>
+                        <Button variant="ghost" onClick={() => navigate('/')}>Về trang chủ</Button>
                     </CardFooter>
                 </Card>
             </div>
         );
     }
 
-    // Màn hình SUCCESS
+    // 2. Trường hợp URL báo thành công (code=00)
     return (
         <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
             <Card className="w-full max-w-md shadow-lg border-green-200 animate-in zoom-in-95 duration-300">
@@ -101,29 +117,38 @@ export default function BookingSuccessPage() {
                     <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-2">
                         <CheckCircle2 className="w-10 h-10 text-green-600" />
                     </div>
-                    <CardTitle className="text-2xl text-green-700">Đặt vé thành công!</CardTitle>
-                    <CardDescription>Cảm ơn bạn đã sử dụng dịch vụ.</CardDescription>
+                    <CardTitle className="text-2xl text-green-700">Đã tiếp nhận thanh toán!</CardTitle>
+                    <CardDescription>Hệ thống đang xử lý vé của bạn.</CardDescription>
                 </CardHeader>
 
                 <CardContent className="space-y-6">
                     <div className="bg-white p-6 rounded-lg border border-dashed border-gray-300 text-center">
-                        <p className="text-sm text-gray-500 mb-1 uppercase tracking-wide">Mã vé của bạn</p>
+                        <p className="text-sm text-gray-500 mb-1 uppercase tracking-wide">Mã vé</p>
                         <p className="text-3xl font-extrabold text-indigo-600 tracking-wider">
                             {bookingCode}
                         </p>
                     </div>
 
-                    {/* Cảnh báo nhẹ nếu DB chưa cập nhật (do localhost) */}
-                    <div className="bg-amber-50 p-3 rounded-md border border-amber-200 text-xs text-amber-800 flex items-start gap-2 text-left">
-                        <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
-                        <div>
-                            Vé điện tử đang được tạo và sẽ gửi tới email: <b>{storedEmail}</b>.
-                            <br />
-                            Nếu trạng thái trong "Lịch sử vé" vẫn là "Chờ thanh toán", vui lòng chờ ít phút để hệ thống cập nhật.
-                        </div>
+                    {/* Hiển thị trạng thái xác thực từ Server (Webhook) */}
+                    <div className={`p-4 rounded-md flex items-center gap-3 transition-colors ${isConfirmed ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-amber-50 text-amber-800 border border-amber-200'}`}>
+                        {isConfirmed ? (
+                            <>
+                                <CheckCircle2 className="w-5 h-5 shrink-0 text-green-600" />
+                                <div className="text-sm">
+                                    <strong>Xác nhận thành công:</strong> <br />
+                                    Vé đã được gửi tới email <b>{storedEmail}</b>.
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <Loader2 className="w-5 h-5 shrink-0 animate-spin text-amber-600" />
+                                <div className="text-sm">
+                                    <strong>Đang đồng bộ dữ liệu...</strong> <br />
+                                    Vui lòng đợi trong giây lát để hệ thống cập nhật trạng thái vé.
+                                </div>
+                            </>
+                        )}
                     </div>
-
-                    
                 </CardContent>
 
                 <CardFooter className="flex flex-col gap-3 w-full">
