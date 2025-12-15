@@ -1,6 +1,6 @@
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
-const xss = require('xss-clean');
+//const xss = require('xss-clean');
 const hpp = require('hpp');
 const express = require('express');
 const cors = require('cors');
@@ -33,7 +33,7 @@ app.use(
     }),
 );
 app.use(helmet());
-app.use(xss());
+//app.use(xss());
 app.use(hpp());
 app.use(cookieParser());
 app.use(express.json());

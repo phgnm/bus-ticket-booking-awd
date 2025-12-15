@@ -165,7 +165,7 @@ ON CONFLICT (license_plate) DO NOTHING;
 -- === 4. INSERT ROUTES ===
 -- Tuyến 1: HCM -> Đà Lạt (300km, 8 tiếng, 300k)
 INSERT INTO routes (route_from, route_to, distance, estimated_duration, price_base) VALUES 
-(1, 2, 300, 480, 300000);
+(1, 2, 300, 480, 2000);
 
 -- Tuyến 2: HCM -> Vũng Tàu (100km, 2.5 tiếng, 180k)
 INSERT INTO routes (route_from, route_to, distance, estimated_duration, price_base) VALUES 
