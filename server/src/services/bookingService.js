@@ -73,7 +73,7 @@ class BookingService {
                 amount: totalOrderAmount,
                 description: `Thanh toan ve ${bookingCode}`,
                 cancelUrl: `${process.env.CLIENT_URL}/booking-failed`,
-                returnUrl: `${process.env.CLIENT_URL}/booking-success?code=${bookingCode}`,
+                returnUrl: `${process.env.CLIENT_URL}/booking-success?bookingCode=${bookingCode}`,
             };
 
             const paymentLinkData =
