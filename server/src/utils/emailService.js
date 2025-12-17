@@ -87,7 +87,56 @@ const sendReminderEmail = async (toEmail, passengerName, tripInfo) => {
     }
 };
 
+const sendCancellationEmail = async (toEmail, bookingCode, refundAmountStr) => {
+    try {
+        let subject = 'Xác nhận Hủy vé xe';
+        let htmlContent = `
+            <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+                <h2 style="color: #d9534f;">Thông báo Hủy vé</h2>
+                <p>Xin chào,</p>
+                <p>Hệ thống đã ghi nhận yêu cầu hủy vé <b>${bookingCode}</b> của bạn.</p>
+                <p>Trạng thái vé hiện tại: <b style="color: #d9534f;">ĐÃ HỦY</b></p>
+        `;
+
+        if (refundAmountStr) {
+            subject = 'Xác nhận Hủy vé và Hoàn tiền';
+            htmlContent += `
+                <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                    <h3 style="margin-top: 0;">Thông tin hoàn tiền</h3>
+                    <p>Số tiền hoàn lại (sau khi trừ phí hủy): <b style="color: #28a745; font-size: 18px;">${refundAmountStr} VNĐ</b></p>
+                    <p><i>Lưu ý: Tiền sẽ được hoàn về tài khoản thanh toán ban đầu trong vòng 5-7 ngày làm việc.</i></p>
+                </div>
+            `;
+        } else {
+             htmlContent += `
+                <p>Vì vé chưa thanh toán, bạn sẽ không mất phí hủy.</p>
+            `;
+        }
+
+        htmlContent += `
+                <p>Nếu bạn có thắc mắc, vui lòng liên hệ hotline 1900 xxxx.</p>
+                <p>Cảm ơn bạn đã sử dụng dịch vụ.</p>
+            </div>
+        `;
+
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: toEmail,
+            subject: subject,
+            html: htmlContent,
+        };
+
+        await transporter.sendMail(mailOptions);
+        console.log(`📧 Đã gửi email hủy vé cho: ${toEmail}`);
+        return true;
+    } catch (err) {
+        console.error('❌ Lỗi gửi email hủy vé:', err);
+        return false; // Không throw lỗi để tránh crash luồng hủy vé chính
+    }
+};
+
 module.exports = {
     sendTicketEmail,
     sendReminderEmail,
+    sendCancellationEmail,
 };

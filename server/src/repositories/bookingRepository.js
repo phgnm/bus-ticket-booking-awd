@@ -77,6 +77,51 @@ class BookingRepository {
             orderCode,
         ]);
     }
+
+    // update status
+    async updateStatus(bookingId, status) {
+        const query = `
+            UPDATE bookings 
+            SET booking_status = $1, updated_at = NOW()
+            WHERE id = $2
+            RETURNING *
+        `;
+        const result = await pool.query(query, [status, bookingId]);
+        return result.rows[0];
+    }
+
+    // find booking by userid
+    async findByUserId(userId) {
+        const query = `
+            SELECT b.*, 
+                   t.departure_time, 
+                   lf.name as from_loc, lt.name as to_loc,
+                   bus.brand, bus.license_plate
+            FROM bookings b
+            JOIN trips t ON b.trip_id = t.id
+            JOIN routes r ON t.route_id = r.id
+            JOIN locations lf ON r.route_from = lf.id
+            JOIN locations lt ON r.route_to = lt.id
+            JOIN buses bus ON t.bus_id = bus.id
+            WHERE b.user_id = $1
+            ORDER BY b.created_at DESC
+        `;
+        const result = await pool.query(query, [userId]);
+        return result.rows;
+    }
+
+    // find booking by its id
+    async findById(bookingId) {
+        const query = `
+            SELECT b.*, t.departure_time
+            FROM bookings b
+            JOIN trips t ON b.trip_id = t.id
+            WHERE b.id = $1
+        `;
+
+        const result = await pool.query(query, [bookingId]);
+        return result.rows[0];
+    }    
 }
 
 module.exports = new BookingRepository();

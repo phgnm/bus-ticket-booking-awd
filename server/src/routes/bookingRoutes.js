@@ -213,4 +213,7 @@ router.post('/', bookingController.createBooking);
  */
 router.post('/payment-webhook', paymentController.receiveWebHook);
 
+router.get('/my-tickets', bookingController.getMyBookings);
+
+router.post('/cancel/:id', bookingController.cancelBooking);
 module.exports = router;

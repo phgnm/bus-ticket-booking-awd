@@ -62,3 +62,31 @@ exports.createBooking = async (req, res) => {
         res.status(500).json({ msg: 'Lỗi server khi đặt vé' });
     }
 };
+
+exports.getMyBookings = async (req, res) => {
+    try {
+        const bookings = await bookingService.getMyBookings(req.user.id);
+        res.json({ success: true, data: bookings });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ msg: 'Lỗi server' });
+    }
+};
+
+exports.cancelBooking = async (req, res) => {
+    try {
+        const { id } = req.params; 
+        const result = await bookingService.cancelBooking(id, req.user.id);
+        
+        res.json({ 
+            success: true, 
+            msg: result.booking_status === 'REFUNDED' 
+                ? 'Hủy vé thành công. Tiền đang được hoàn lại.' 
+                : 'Hủy vé thành công.',
+            data: result 
+        });
+    } catch (err) {
+        console.error(err);
+        return res.status(400).json({ msg: err.message });
+    }
+};
