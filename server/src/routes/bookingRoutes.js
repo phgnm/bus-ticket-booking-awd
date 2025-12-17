@@ -213,4 +213,9 @@ router.post('/', bookingController.createBooking);
  */
 router.post('/payment-webhook', paymentController.receiveWebHook);
 
+const authMiddleware = require('../middlewares/authMiddleware');
+
+router.get('/my-bookings', authMiddleware.authenticateJWT, bookingController.getMyBookings);
+
+router.post('/cancel/:id', authMiddleware.authenticateJWT, bookingController.cancelBooking);
 module.exports = router;
