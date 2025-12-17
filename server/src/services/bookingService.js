@@ -124,6 +124,7 @@ class BookingService {
 
         // refund logic
         let newStatus = 'CANCELLED';
+        let refundStr = null;
         let emailSubject = 'Xác nhận hủy vé';
         let emailBody = `<p>Vé <b>${booking.booking_code}</b> đã được hủy thành công.</p>`;
 
@@ -132,11 +133,11 @@ class BookingService {
             emailSubject = 'Xác nhận hủy vé và Hoàn tiền';
             // 90% refund
             const refundAmount = parseFloat(booking.total_price) * 0.9;
-            const refundAmountStr = refundAmount.toLocaleString('vi-VN');
+            refundStr = refundAmount.toLocaleString('vi-VN');
             
             emailBody += `
                 <p>Vì bạn đã thanh toán, hệ thống đã ghi nhận yêu cầu hoàn tiền.</p>
-                <p>Số tiền hoàn lại (90%): <b>${refundAmountStr} VNĐ</b></p>
+                <p>Số tiền hoàn lại (90%): <b>${refundStr} VNĐ</b></p>
                 <p>Tiền sẽ được hoàn về tài khoản nguồn trong 5-7 ngày làm việc.</p>
             `;
         }
@@ -145,7 +146,7 @@ class BookingService {
         const updateBooking = await bookingRepository.updateStatus(bookingId, newStatus);
 
         if (booking.contact_email) {
-            emailService.sendCancellationEmail(
+            await emailService.sendCancellationEmail(
                 booking.contact_email, 
                 booking.booking_code, 
                 refundStr // Nếu null nghĩa là không hoàn tiền
