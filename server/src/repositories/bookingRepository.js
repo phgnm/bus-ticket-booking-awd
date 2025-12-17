@@ -82,7 +82,7 @@ class BookingRepository {
     async updateStatus(bookingId, status) {
         const query = `
             UPDATE bookings 
-            SET booking_status = $1, updated_at = NOW()
+            SET booking_status = $1
             WHERE id = $2
             RETURNING *
         `;
@@ -100,11 +100,11 @@ class BookingRepository {
             FROM bookings b
             JOIN trips t ON b.trip_id = t.id
             JOIN routes r ON t.route_id = r.id
-            JOIN locations lf ON r.route_from = lf.id
-            JOIN locations lt ON r.route_to = lt.id
+            LEFT JOIN locations lf ON r.route_from = lf.id
+            LEFT JOIN locations lt ON r.route_to = lt.id
             JOIN buses bus ON t.bus_id = bus.id
             WHERE b.user_id = $1
-            ORDER BY b.created_at DESC
+            ORDER BY b.id DESC
         `;
         const result = await pool.query(query, [userId]);
         return result.rows;
