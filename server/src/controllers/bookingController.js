@@ -77,18 +77,44 @@ exports.getMyBookings = async (req, res) => {
 
 exports.cancelBooking = async (req, res) => {
     try {
-        const { id } = req.params; 
+        const { id } = req.params;
         const result = await bookingService.cancelBooking(id, req.user.id);
-        
-        res.json({ 
-            success: true, 
-            msg: result.booking_status === 'REFUNDED' 
-                ? 'Hủy vé thành công. Tiền đang được hoàn lại.' 
+
+        res.json({
+            success: true,
+            msg: result.booking_status === 'REFUNDED'
+                ? 'Hủy vé thành công. Tiền đang được hoàn lại.'
                 : 'Hủy vé thành công.',
-            data: result 
+            data: result
         });
     } catch (err) {
         console.error(err);
         return res.status(400).json({ msg: err.message });
+    }
+};
+
+exports.changeSeat = async (req, res) => {
+    try {
+        const { id } = req.params; // bookingId
+        const { newSeatNumber } = req.body;
+        const userId = req.user.id; // Lấy từ token
+
+        if (!newSeatNumber) {
+            return res.status(400).json({ msg: 'Vui lòng chọn ghế mới' });
+        }
+
+        const result = await bookingService.changeSeat(id, userId, newSeatNumber);
+
+        res.json({
+            success: true,
+            msg: `Đổi sang ghế ${newSeatNumber} thành công`,
+            data: result
+        });
+    } catch (err) {
+        console.error(err);
+        if (err.message.includes('đã có người đặt')) {
+            return res.status(409).json({ msg: err.message });
+        }
+        res.status(400).json({ msg: err.message });
     }
 };

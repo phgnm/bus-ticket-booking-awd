@@ -4,7 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
-    Loader2, Calendar, MapPin, Ticket, AlertTriangle, XCircle, Eye
+    Loader2, Calendar, MapPin, Ticket, AlertTriangle, XCircle, Eye, ArrowRightLeft // [MỚI] Thêm icon ArrowRightLeft
 } from 'lucide-react';
 import { format, differenceInHours } from 'date-fns';
 import { vi } from 'date-fns/locale';
@@ -19,6 +19,7 @@ import {
     DialogFooter
 } from "@/components/ui/dialog";
 import TicketView from '@/components/shared/TicketView';
+import ChangeSeatDialog from '../components/ChangeSeatDialog'; // [MỚI] Import Component Đổi ghế
 
 export default function TicketHistoryPage() {
     const { user } = useAuth();
@@ -31,6 +32,10 @@ export default function TicketHistoryPage() {
     const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
     const [ticketToCancel, setTicketToCancel] = useState(null);
     const [isCanceling, setIsCanceling] = useState(false);
+
+    // --- [MỚI] State cho chức năng Đổi ghế ---
+    const [isChangeSeatOpen, setIsChangeSeatOpen] = useState(false);
+    const [selectedBookingToChange, setSelectedBookingToChange] = useState(null);
 
     // Hàm gọi API lấy danh sách
     const fetchHistory = async () => {
@@ -92,6 +97,16 @@ export default function TicketHistoryPage() {
         } finally {
             setIsCanceling(false);
         }
+    };
+
+    // --- [MỚI] Handlers cho Đổi ghế ---
+    const handleOpenChangeSeat = (booking) => {
+        setSelectedBookingToChange(booking);
+        setIsChangeSeatOpen(true);
+    };
+
+    const handleChangeSeatSuccess = () => {
+        fetchHistory(); // Reload lại danh sách vé để cập nhật ghế mới
     };
 
     const getStatusColor = (status) => {
@@ -255,6 +270,19 @@ export default function TicketHistoryPage() {
                                                     </DialogContent>
                                                 </Dialog>
 
+                                                {/* [MỚI] Nút Đổi ghế */}
+                                                {canCancel && (
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="text-blue-600 border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+                                                        onClick={() => handleOpenChangeSeat(item)}
+                                                    >
+                                                        <ArrowRightLeft className="w-4 h-4 mr-1" />
+                                                        Đổi ghế
+                                                    </Button>
+                                                )}
+
                                                 {/* Nút Hủy vé */}
                                                 {canCancel && (
                                                     <Button
@@ -324,6 +352,14 @@ export default function TicketHistoryPage() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            {/* [MỚI] Dialog Đổi ghế */}
+            <ChangeSeatDialog
+                open={isChangeSeatOpen}
+                onOpenChange={setIsChangeSeatOpen}
+                booking={selectedBookingToChange}
+                onSuccess={handleChangeSeatSuccess}
+            />
         </div>
     );
 }

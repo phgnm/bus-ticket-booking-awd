@@ -26,4 +26,20 @@ api.interceptors.request.use(
     (error) => Promise.reject(error)
 );
 
+
+
 export default api;
+
+// 1. Hàm lấy chi tiết chuyến đi (để biết ghế nào đã full)
+export const getTripDetails = async (tripId) => {
+    // Giả sử bạn đã có API get trip detail, nếu chưa có thì dùng logic tìm kiếm
+    // Hoặc tái sử dụng API search chuyến đi
+    const res = await api.get(`/trips/${tripId}`);
+    return res.data;
+};
+
+// 2. Hàm đổi ghế
+export const changeBookingSeat = async (bookingId, newSeatNumber) => {
+    const res = await api.put(`/bookings/change-seat/${bookingId}`, { newSeatNumber });
+    return res.data;
+};
