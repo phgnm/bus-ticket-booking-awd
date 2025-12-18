@@ -286,4 +286,24 @@ router.post(
     tripController.createBooking,
 );
 
+/**
+ * @swagger
+ * /trips/{id}:
+ *   get:
+ *     summary: Get trip details by ID
+ *     tags: [Trips]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Trip details
+ *       404:
+ *         description: Trip not found
+ */
+router.get('/:id', tripController.getTripById);
+
 module.exports = router;

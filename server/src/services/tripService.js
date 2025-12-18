@@ -50,6 +50,14 @@ class TripService {
         return response;
     }
 
+    async getTripById(tripId) {
+        const trip = await tripRepository.getById(tripId);
+        if (!trip) {
+            throw new Error('Trip not found');
+        }
+        return trip;
+    }
+
     // --- SEATS ---
     async getSeatStatus(tripId) {
         const soldSeats = await tripRepository.getSoldSeats(tripId);

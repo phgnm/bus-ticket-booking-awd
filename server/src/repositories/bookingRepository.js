@@ -123,6 +123,18 @@ class BookingRepository {
         const result = await pool.query(query, [bookingId]);
         return result.rows[0];
     }
+
+    // update seat number
+    async updateSeat(client, bookingId, newSeatNumber) {
+        const query = `
+            UPDATE bookings 
+            SET seat_number = $1
+            WHERE id = $2
+            RETURNING *
+        `;
+        const result = await client.query(query, [newSeatNumber, bookingId]);
+        return result.rows[0];
+    }
 }
 
 module.exports = new BookingRepository();

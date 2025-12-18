@@ -217,4 +217,5 @@ router.post('/payment-webhook', paymentController.receiveWebHook);
 router.get('/my-bookings', authMiddleware.authenticateJWT, bookingController.getMyBookings);
 
 router.post('/cancel/:id', authMiddleware.authenticateJWT, bookingController.cancelBooking);
+router.put('/change-seat/:id', authMiddleware.authenticateJWT, bookingController.changeSeat);
 module.exports = router;
