@@ -53,6 +53,7 @@ class BookingRepository {
     async createBookingRecord(client, bookingData) {
         const {
             tripId,
+            userId, // Thêm userId vào object nhận vào
             passengerName,
             passengerPhone,
             seatNumber,
@@ -62,12 +63,12 @@ class BookingRepository {
             orderCode,
         } = bookingData;
         const query = `
-            INSERT INTO bookings
-            (trip_id, passenger_name, passenger_phone, seat_number, total_price, booking_code, contact_email, booking_status, transaction_id)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, 'PENDING_PAYMENT', $8)
-        `;
+        INSERT INTO bookings
+        (trip_id, user_id, passenger_name, passenger_phone, seat_number, total_price, booking_code, contact_email, booking_status, transaction_id)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'PENDING_PAYMENT', $9) -- Thêm $2 và dịch chuyển các tham số`;
         await client.query(query, [
             tripId,
+            userId, // Truyền userId vào đây
             passengerName,
             passengerPhone,
             seatNumber,
@@ -121,7 +122,7 @@ class BookingRepository {
 
         const result = await pool.query(query, [bookingId]);
         return result.rows[0];
-    }    
+    }
 }
 
 module.exports = new BookingRepository();
