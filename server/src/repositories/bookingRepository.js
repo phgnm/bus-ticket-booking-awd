@@ -28,7 +28,7 @@ class BookingRepository {
         const query = `
             SELECT seat_number FROM bookings 
             WHERE trip_id = $1 AND seat_number = ANY($2) 
-            AND booking_status != 'CANCELLED' FOR UPDATE
+            AND booking_status NOT IN ('CANCELLED', 'REFUNDED') FOR UPDATE
         `;
         const result = await client.query(query, [tripId, seats]);
         return result.rows; // Trả về danh sách ghế đã bị đặt

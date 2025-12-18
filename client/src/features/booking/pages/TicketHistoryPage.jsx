@@ -4,10 +4,9 @@ import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
-    Loader2, Calendar, MapPin, Ticket, Clock, BusFront,
-    AlertTriangle, XCircle, Eye
+    Loader2, Calendar, MapPin, Ticket, AlertTriangle, XCircle, Eye
 } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, differenceInHours } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -16,6 +15,8 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
+    DialogDescription,
+    DialogFooter
 } from "@/components/ui/dialog";
 import TicketView from '@/components/shared/TicketView';
 
@@ -26,7 +27,12 @@ export default function TicketHistoryPage() {
     const [loading, setLoading] = useState(true);
     const [selectedBooking, setSelectedBooking] = useState(null);
 
-    // Hàm gọi API lấy danh sách - Đã sửa endpoint khớp với backend
+    // --- State cho chức năng Hủy vé ---
+    const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
+    const [ticketToCancel, setTicketToCancel] = useState(null);
+    const [isCanceling, setIsCanceling] = useState(false);
+
+    // Hàm gọi API lấy danh sách
     const fetchHistory = async () => {
         try {
             setLoading(true);
@@ -50,22 +56,41 @@ export default function TicketHistoryPage() {
         if (user) fetchHistory();
     }, [user]);
 
-    // Hàm xử lý hủy vé - Đã sửa URL khớp với bookingRoutes.js
-    const handleCancelTicket = async (ticketId) => {
-        if (!confirm("Bạn có chắc chắn muốn hủy vé này không? Hành động này không thể hoàn tác.")) return;
+    // 1. Mở Dialog xác nhận
+    const openCancelDialog = (booking) => {
+        setTicketToCancel(booking);
+        setIsCancelDialogOpen(true);
+    };
+
+    // 2. Thực hiện gọi API hủy vé
+    const handleConfirmCancel = async () => {
+        if (!ticketToCancel) return;
 
         try {
-            const res = await api.post(`/bookings/cancel/${ticketId}`);
+            setIsCanceling(true);
+            const res = await api.post(`/bookings/cancel/${ticketToCancel.id}`);
+
             if (res.data.success) {
                 toast({
                     title: "Thành công",
-                    description: res.data.msg || "Đã hủy vé thành công."
+                    description: res.data.msg || "Đã hủy vé thành công.",
+                    className: "bg-green-50 border-green-200 text-green-800"
                 });
                 fetchHistory(); // Làm mới danh sách
+                setIsCancelDialogOpen(false); // Đóng dialog
             }
         } catch (error) {
-            const msg = error.response?.data?.msg || "Lỗi khi hủy vé";
-            toast({ variant: "destructive", title: "Thất bại", description: msg });
+            console.error("Lỗi hủy vé:", error);
+            // Lấy msg lỗi từ Backend (ví dụ: "Chỉ được hủy trước 24h...")
+            const errorMsg = error.response?.data?.msg || "Lỗi khi hủy vé. Vui lòng thử lại.";
+
+            toast({
+                variant: "destructive",
+                title: "Thất bại",
+                description: errorMsg
+            });
+        } finally {
+            setIsCanceling(false);
         }
     };
 
@@ -73,6 +98,7 @@ export default function TicketHistoryPage() {
         switch (status) {
             case 'CONFIRMED': return 'bg-green-100 text-green-700 border-green-200';
             case 'PAID': return 'bg-blue-100 text-blue-700 border-blue-200';
+            case 'PENDING_PAYMENT': return 'bg-yellow-100 text-yellow-700 border-yellow-200'; // Đã sửa khớp với DB
             case 'PENDING': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
             case 'CANCELLED': return 'bg-red-100 text-red-700 border-red-200';
             case 'REFUNDED': return 'bg-purple-100 text-purple-700 border-purple-200';
@@ -84,11 +110,19 @@ export default function TicketHistoryPage() {
         const map = {
             'CONFIRMED': 'Đã xác nhận',
             'PAID': 'Đã thanh toán',
-            'PENDING': 'Chờ thanh toán',
+            'PENDING_PAYMENT': 'Chờ thanh toán',
+            'PENDING': 'Chờ xử lý',
             'CANCELLED': 'Đã hủy',
             'REFUNDED': 'Đã hoàn tiền'
         };
         return map[status] || status;
+    };
+
+    // Helper kiểm tra quá hạn hủy (24h)
+    const isPastCancellationTime = (departureTime) => {
+        const now = new Date();
+        const departure = new Date(departureTime);
+        return differenceInHours(departure, now) < 24;
     };
 
     if (loading) return (
@@ -118,101 +152,178 @@ export default function TicketHistoryPage() {
                 </div>
             ) : (
                 <div className="grid gap-4">
-                    {bookings.map((item) => (
-                        <Card key={item.id} className="hover:shadow-md transition-all duration-200 border-l-4 border-l-indigo-500">
-                            <CardContent className="p-0">
-                                <div className="flex flex-col md:flex-row">
-                                    <div className="p-5 flex-1 space-y-3">
-                                        <div className="flex justify-between items-start">
-                                            <div>
-                                                <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
-                                                    <Calendar className="w-4 h-4" />
-                                                    {format(new Date(item.departure_time), "dd 'tháng' MM, yyyy", { locale: vi })}
+                    {bookings.map((item) => {
+                        const canCancel = item.booking_status !== 'CANCELLED' &&
+                            item.booking_status !== 'REFUNDED';
+                        const isTooLateToCancel = isPastCancellationTime(item.departure_time);
+
+                        return (
+                            <Card key={item.id} className="hover:shadow-md transition-all duration-200 border-l-4 border-l-indigo-500">
+                                <CardContent className="p-0">
+                                    <div className="flex flex-col md:flex-row">
+                                        {/* Cột trái: Thông tin chuyến */}
+                                        <div className="p-5 flex-1 space-y-4">
+                                            <div className="flex justify-between items-start">
+                                                <div>
+                                                    <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
+                                                        <Calendar className="w-4 h-4" />
+                                                        {format(new Date(item.departure_time), "dd 'tháng' MM, yyyy", { locale: vi })}
+                                                    </div>
+                                                    <div className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                                                        {format(new Date(item.departure_time), "HH:mm")}
+                                                        <span className="text-sm font-normal px-2 py-0.5 rounded bg-slate-100 text-slate-600">
+                                                            {item.bus_brand}
+                                                        </span>
+                                                    </div>
                                                 </div>
-                                                <div className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                                                    {format(new Date(item.departure_time), "HH:mm")}
-                                                    <span className="text-sm font-normal px-2 py-0.5 rounded bg-slate-100 text-slate-600">
-                                                        {item.bus_brand}
+                                                <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getStatusColor(item.booking_status)}`}>
+                                                    {getStatusText(item.booking_status)}
+                                                </span>
+                                            </div>
+
+                                            {/* Hiển thị Lộ trình (Mới cập nhật) */}
+                                            <div className="flex items-start gap-3">
+                                                <div className="flex flex-col items-center gap-0.5 mt-1">
+                                                    <div className="w-2.5 h-2.5 rounded-full bg-white border-2 border-indigo-500"></div>
+                                                    <div className="h-10 w-0.5 bg-slate-200 border-l border-dashed border-slate-300"></div>
+                                                    <div className="w-2.5 h-2.5 rounded-full bg-indigo-500"></div>
+                                                </div>
+                                                <div className="flex flex-col gap-3 flex-1">
+                                                    <div>
+                                                        <div className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Điểm đón</div>
+                                                        <div className="font-medium text-slate-700 flex items-center gap-1">
+                                                            <MapPin className="w-3 h-3 text-slate-400" />
+                                                            {/* Sử dụng from_loc cho khớp với Backend */}
+                                                            {item.from_loc || item.from_location}
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <div className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Điểm trả</div>
+                                                        <div className="font-medium text-slate-700 flex items-center gap-1">
+                                                            <MapPin className="w-3 h-3 text-indigo-500" />
+                                                            {/* Sử dụng to_loc cho khớp với Backend */}
+                                                            {item.to_loc || item.to_location}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Cột phải: Thông tin vé & Hành động */}
+                                        <div className="p-5 bg-slate-50/50 border-t md:border-t-0 md:border-l flex flex-col justify-between min-w-[240px]">
+                                            <div className="space-y-2">
+                                                <div className="flex justify-between text-sm">
+                                                    <span className="text-slate-500">Mã vé:</span>
+                                                    <span className="font-mono font-bold text-slate-700">{item.booking_code}</span>
+                                                </div>
+                                                <div className="flex justify-between text-sm">
+                                                    <span className="text-slate-500">Ghế:</span>
+                                                    <span className="font-bold text-indigo-600">{item.seat_number}</span>
+                                                </div>
+                                                <div className="flex justify-between text-sm pt-2 border-t border-dashed border-slate-200">
+                                                    <span className="text-slate-500">Tổng tiền:</span>
+                                                    <span className="font-bold text-indigo-700 text-lg">
+                                                        {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.total_price)}
                                                     </span>
                                                 </div>
                                             </div>
-                                            <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getStatusColor(item.booking_status)}`}>
-                                                {getStatusText(item.booking_status)}
-                                            </span>
-                                        </div>
 
-                                        <div className="flex items-center gap-3">
-                                            <div className="flex flex-col items-center gap-0.5">
-                                                <div className="w-2.5 h-2.5 rounded-full bg-white border-2 border-indigo-500"></div>
-                                                <div className="h-8 w-0.5 bg-slate-200 border-l border-dashed border-slate-300"></div>
-                                                <div className="w-2.5 h-2.5 rounded-full bg-indigo-500"></div>
-                                            </div>
-                                            <div className="flex flex-col gap-2 flex-1">
-                                                <div className="font-medium text-slate-700">{item.from_location}</div>
-                                                <div className="font-medium text-slate-700">{item.to_location}</div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                            <div className="flex gap-2 mt-4 justify-end">
+                                                {/* Nút Xem chi tiết */}
+                                                <Dialog>
+                                                    <DialogTrigger asChild>
+                                                        <Button variant="outline" size="sm" onClick={() => setSelectedBooking(item)}>
+                                                            <Eye className="w-4 h-4 mr-1" /> Chi tiết
+                                                        </Button>
+                                                    </DialogTrigger>
+                                                    <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                                                        <DialogHeader>
+                                                            <DialogTitle>Chi tiết vé xe</DialogTitle>
+                                                        </DialogHeader>
+                                                        <div className="py-4">
+                                                            <TicketView booking={{
+                                                                ...item,
+                                                                // Đảm bảo TicketView cũng nhận được địa điểm đúng
+                                                                from_location: item.from_loc || item.from_location,
+                                                                to_location: item.to_loc || item.to_location,
+                                                                seats: [item.seat_number],
+                                                                passenger_name: user?.full_name,
+                                                                passenger_phone: user?.phone_number,
+                                                                passenger_email: user?.email
+                                                            }} />
+                                                        </div>
+                                                    </DialogContent>
+                                                </Dialog>
 
-                                    <div className="p-5 bg-slate-50/50 border-t md:border-t-0 md:border-l flex flex-col justify-between min-w-[200px]">
-                                        <div className="space-y-2">
-                                            <div className="flex justify-between text-sm">
-                                                <span className="text-slate-500">Mã vé:</span>
-                                                <span className="font-mono font-bold text-slate-700">{item.booking_code}</span>
-                                            </div>
-                                            <div className="flex justify-between text-sm">
-                                                <span className="text-slate-500">Ghế:</span>
-                                                <span className="font-bold text-indigo-600">{item.seat_number}</span>
-                                            </div>
-                                            <div className="flex justify-between text-sm pt-2 border-t border-dashed border-slate-200">
-                                                <span className="text-slate-500">Tổng tiền:</span>
-                                                <span className="font-bold text-indigo-700 text-lg">
-                                                    {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.total_price)}
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex gap-2 mt-4 justify-end">
-                                            <Dialog>
-                                                <DialogTrigger asChild>
-                                                    <Button variant="outline" size="sm" onClick={() => setSelectedBooking(item)}>
-                                                        <Eye className="w-4 h-4 mr-1" /> Chi tiết
+                                                {/* Nút Hủy vé */}
+                                                {canCancel && (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="text-red-600 hover:text-red-700 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        disabled={isTooLateToCancel} // Disable nếu quá hạn
+                                                        onClick={() => openCancelDialog(item)}
+                                                    >
+                                                        <XCircle className="w-4 h-4 mr-1" />
+                                                        {isTooLateToCancel ? "Hết hạn hủy" : "Hủy vé"}
                                                     </Button>
-                                                </DialogTrigger>
-                                                <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-                                                    <DialogHeader>
-                                                        <DialogTitle>Chi tiết vé xe</DialogTitle>
-                                                    </DialogHeader>
-                                                    <div className="py-4">
-                                                        <TicketView booking={{
-                                                            ...item,
-                                                            seats: [item.seat_number],
-                                                            passenger_name: user?.full_name,
-                                                            passenger_phone: user?.phone_number,
-                                                            passenger_email: user?.email
-                                                        }} />
-                                                    </div>
-                                                </DialogContent>
-                                            </Dialog>
-
-                                            {item.booking_status !== 'CANCELLED' && item.booking_status !== 'REFUNDED' && (
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                                    onClick={() => handleCancelTicket(item.id)}
-                                                >
-                                                    <XCircle className="w-4 h-4 mr-1" /> Hủy vé
-                                                </Button>
-                                            )}
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
+                                </CardContent>
+                            </Card>
+                        );
+                    })}
                 </div>
             )}
+
+            {/* Dialog xác nhận hủy vé */}
+            <Dialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2 text-red-600">
+                            <AlertTriangle className="h-5 w-5" /> Xác nhận hủy vé
+                        </DialogTitle>
+                        <DialogDescription>
+                            Hành động này sẽ hủy vé xe của bạn và không thể hoàn tác.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="py-2 text-slate-700">
+                        <div className="bg-slate-50 p-3 rounded-md mb-3 text-sm border border-slate-100">
+                            <p><strong>Mã vé:</strong> {ticketToCancel?.booking_code}</p>
+                            <p><strong>Chuyến:</strong> {ticketToCancel?.from_loc} đi {ticketToCancel?.to_loc}</p>
+                            <p><strong>Giờ khởi hành:</strong> {ticketToCancel && format(new Date(ticketToCancel.departure_time), "HH:mm dd/MM/yyyy")}</p>
+                        </div>
+
+                        <p className="text-sm font-semibold mb-1">Chính sách hoàn tiền:</p>
+                        <ul className="list-disc list-inside text-sm text-slate-500 space-y-1">
+                            <li>Nếu vé đã thanh toán: Hoàn 90% giá trị vé.</li>
+                            <li>Nếu vé chưa thanh toán: Hủy vé ngay lập tức.</li>
+                            <li>Thời gian hoàn tiền: 5-7 ngày làm việc.</li>
+                        </ul>
+                    </div>
+
+                    <DialogFooter className="gap-2 sm:gap-0">
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsCancelDialogOpen(false)}
+                            disabled={isCanceling}
+                        >
+                            Đóng
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            onClick={handleConfirmCancel}
+                            disabled={isCanceling}
+                        >
+                            {isCanceling && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            {isCanceling ? "Đang xử lý..." : "Xác nhận hủy"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
