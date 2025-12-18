@@ -18,7 +18,7 @@ class BookingService {
         return { ...bookingData, total_price: finalPrice };
     }
 
-    async createBooking({ trip_id, seats, passenger_info }) {
+    async createBooking({ trip_id, seats, passenger_info, userId }) {
         const client = await pool.connect();
 
         try {
@@ -57,6 +57,7 @@ class BookingService {
             for (const seat of seats) {
                 await bookingRepository.createBookingRecord(client, {
                     tripId: trip_id,
+                    userId: userId,
                     passengerName: passenger_info.name,
                     passengerPhone: passenger_info.phone,
                     seatNumber: seat,

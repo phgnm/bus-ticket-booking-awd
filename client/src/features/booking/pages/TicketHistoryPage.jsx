@@ -16,26 +16,31 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-} from "@/components/ui/dialog"; // Giả sử bạn có component Dialog của shadcn/ui (nếu chưa có thì dùng modal html thường)
-import TicketView from '@/components/shared/TicketView'; // Tận dụng component TicketView đã làm
+} from "@/components/ui/dialog";
+import TicketView from '@/components/shared/TicketView';
 
 export default function TicketHistoryPage() {
     const { user } = useAuth();
     const { toast } = useToast();
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [selectedBooking, setSelectedBooking] = useState(null); // Để hiện modal chi tiết
+    const [selectedBooking, setSelectedBooking] = useState(null);
 
-    // Hàm gọi API lấy danh sách
+    // Hàm gọi API lấy danh sách - Đã sửa endpoint khớp với backend
     const fetchHistory = async () => {
         try {
-            const res = await api.get('/bookings/my-history');
+            setLoading(true);
+            const res = await api.get('/bookings/my-bookings');
             if (res.data.success) {
                 setBookings(res.data.data);
             }
         } catch (error) {
             console.error("Lỗi tải lịch sử:", error);
-            toast({ variant: "destructive", title: "Lỗi", description: "Không thể tải lịch sử đặt vé" });
+            toast({
+                variant: "destructive",
+                title: "Lỗi",
+                description: error.response?.data?.msg || "Không thể tải lịch sử đặt vé"
+            });
         } finally {
             setLoading(false);
         }
@@ -45,15 +50,18 @@ export default function TicketHistoryPage() {
         if (user) fetchHistory();
     }, [user]);
 
-    // Hàm xử lý hủy vé
+    // Hàm xử lý hủy vé - Đã sửa URL khớp với bookingRoutes.js
     const handleCancelTicket = async (ticketId) => {
         if (!confirm("Bạn có chắc chắn muốn hủy vé này không? Hành động này không thể hoàn tác.")) return;
 
         try {
-            const res = await api.post(`/bookings/${ticketId}/cancel`);
+            const res = await api.post(`/bookings/cancel/${ticketId}`);
             if (res.data.success) {
-                toast({ title: "Thành công", description: "Đã hủy vé thành công." });
-                fetchHistory(); // Refresh lại danh sách
+                toast({
+                    title: "Thành công",
+                    description: res.data.msg || "Đã hủy vé thành công."
+                });
+                fetchHistory(); // Làm mới danh sách
             }
         } catch (error) {
             const msg = error.response?.data?.msg || "Lỗi khi hủy vé";
@@ -61,29 +69,33 @@ export default function TicketHistoryPage() {
         }
     };
 
-    // Helper: Màu sắc trạng thái
     const getStatusColor = (status) => {
         switch (status) {
             case 'CONFIRMED': return 'bg-green-100 text-green-700 border-green-200';
             case 'PAID': return 'bg-blue-100 text-blue-700 border-blue-200';
             case 'PENDING': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
             case 'CANCELLED': return 'bg-red-100 text-red-700 border-red-200';
+            case 'REFUNDED': return 'bg-purple-100 text-purple-700 border-purple-200';
             default: return 'bg-gray-100 text-gray-700 border-gray-200';
         }
     };
 
-    // Helper: Dịch trạng thái sang tiếng Việt
     const getStatusText = (status) => {
         const map = {
             'CONFIRMED': 'Đã xác nhận',
             'PAID': 'Đã thanh toán',
             'PENDING': 'Chờ thanh toán',
-            'CANCELLED': 'Đã hủy'
+            'CANCELLED': 'Đã hủy',
+            'REFUNDED': 'Đã hoàn tiền'
         };
         return map[status] || status;
     };
 
-    if (loading) return <div className="flex justify-center p-20"><Loader2 className="w-8 h-8 animate-spin text-indigo-600" /></div>;
+    if (loading) return (
+        <div className="flex justify-center items-center min-h-[400px]">
+            <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+        </div>
+    );
 
     return (
         <div className="container mx-auto py-8 px-4 max-w-5xl">
@@ -110,7 +122,6 @@ export default function TicketHistoryPage() {
                         <Card key={item.id} className="hover:shadow-md transition-all duration-200 border-l-4 border-l-indigo-500">
                             <CardContent className="p-0">
                                 <div className="flex flex-col md:flex-row">
-                                    {/* Cột 1: Thông tin chuyến đi */}
                                     <div className="p-5 flex-1 space-y-3">
                                         <div className="flex justify-between items-start">
                                             <div>
@@ -143,7 +154,6 @@ export default function TicketHistoryPage() {
                                         </div>
                                     </div>
 
-                                    {/* Cột 2: Thông tin vé & Giá */}
                                     <div className="p-5 bg-slate-50/50 border-t md:border-t-0 md:border-l flex flex-col justify-between min-w-[200px]">
                                         <div className="space-y-2">
                                             <div className="flex justify-between text-sm">
@@ -162,33 +172,30 @@ export default function TicketHistoryPage() {
                                             </div>
                                         </div>
 
-                                        {/* Actions */}
                                         <div className="flex gap-2 mt-4 justify-end">
-                                            {/* Nút Xem chi tiết (Mở Modal) */}
                                             <Dialog>
                                                 <DialogTrigger asChild>
                                                     <Button variant="outline" size="sm" onClick={() => setSelectedBooking(item)}>
                                                         <Eye className="w-4 h-4 mr-1" /> Chi tiết
                                                     </Button>
                                                 </DialogTrigger>
-                                                <DialogContent className="max-w-3xl">
+                                                <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
                                                     <DialogHeader>
                                                         <DialogTitle>Chi tiết vé xe</DialogTitle>
                                                     </DialogHeader>
                                                     <div className="py-4">
-                                                        {/* Re-use TicketView component, cần format lại data cho khớp props nếu cấu trúc DB trả về khác */}
                                                         <TicketView booking={{
                                                             ...item,
-                                                            seats: [item.seat_number], // TicketView nhận mảng
-                                                            passenger_name: user.full_name,
-                                                            passenger_phone: user.phone_number
+                                                            seats: [item.seat_number],
+                                                            passenger_name: user?.full_name,
+                                                            passenger_phone: user?.phone_number,
+                                                            passenger_email: user?.email
                                                         }} />
                                                     </div>
                                                 </DialogContent>
                                             </Dialog>
 
-                                            {/* Nút Hủy vé (Chỉ hiện nếu chưa hủy) */}
-                                            {item.booking_status !== 'CANCELLED' && (
+                                            {item.booking_status !== 'CANCELLED' && item.booking_status !== 'REFUNDED' && (
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"

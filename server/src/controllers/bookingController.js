@@ -31,6 +31,7 @@ exports.createBooking = async (req, res) => {
     try {
         const { trip_id, seats, passenger_info } = req.body;
         // passenger_info: { name, phone, email }
+        const userId = req.user ? req.user.id : null;
 
         // basic validation
         if (!trip_id || !seats || !passenger_info) {
@@ -41,6 +42,7 @@ exports.createBooking = async (req, res) => {
             trip_id,
             seats,
             passenger_info,
+            userId,
         });
 
         // frontend need to redirect checkoutURL here
