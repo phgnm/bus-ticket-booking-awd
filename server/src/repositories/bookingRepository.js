@@ -122,6 +122,19 @@ class BookingRepository {
 
         const result = await pool.query(query, [bookingId]);
         return result.rows[0];
+    }    
+
+    // finc paid user booking for review
+    async findVerifiedBooking(userId, tripId) {
+        const query = `
+            SELECT * FROM bookings 
+            WHERE user_id = $1 
+            AND trip_id = $2 
+            AND booking_status IN ('PAID', 'COMPLETED')
+            LIMIT 1
+        `;
+        const result = await pool.query(query, [userId, tripId]);
+        return result.rows[0]; // Trả về vé nếu có, không thì undefined
     }
 
     // update seat number

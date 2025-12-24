@@ -119,6 +119,17 @@ CREATE TABLE IF NOT EXISTS bookings (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS reviews (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    trip_id INTEGER REFERENCES trips(id) ON DELETE CASCADE,
+    booking_id INTEGER REFERENCES bookings(id) ON DELETE CASCADE, -- Link tới vé để check verified
+    rating INTEGER CHECK (rating >= 1 AND rating <= 5), -- 1 đến 5 sao
+    comment TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_booking_review UNIQUE (booking_id) -- 1 vé chỉ review 1 lần
+);
+
 -- =================== SEED DATA ====================
 
 -- === 1. INSERT LOCATIONS ===
@@ -214,6 +225,8 @@ CREATE INDEX IF NOT EXISTS idx_bookings_trip_id ON bookings(trip_id);
 CREATE INDEX IF NOT EXISTS idx_bookings_lookup ON bookings(booking_code, contact_email);
 
 CREATE INDEX IF NOT EXISTS idx_bookings_code ON bookings(booking_code);
+
+CREATE INDEX IF NOT EXISTS idx_reviews_trip_id ON reviews(trip_id);
 
 CREATE UNIQUE INDEX idx_unique_active_seat ON bookings (trip_id, seat_number) WHERE booking_status != 'CANCELLED';
 

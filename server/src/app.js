@@ -16,6 +16,7 @@ const bookingRoutes = require('./routes/bookingRoutes');
 const seatRoutes = require('./routes/seatRoutes');
 const tripRoutes = require('./routes/tripRoutes');
 const locationRoutes = require('./routes/locationRoutes');
+const reviewRoutes = require('./routes/reviewRoutes');
 
 
 const app = express();
@@ -33,7 +34,6 @@ app.use(
     }),
 );
 app.use(helmet());
-//app.use(xss());
 app.use(hpp());
 app.use(cookieParser());
 app.use(express.json());
@@ -56,6 +56,7 @@ app.use('/api/bookings', bookingRoutes);
 app.use('/api/seats', seatRoutes);
 app.use('/api/trips', tripRoutes);
 app.use('/api/locations', locationRoutes);
+app.use('/api/reviews', reviewRoutes);
 app.use('/api', adminRoutes);
 app.use('/api', limiter);
 
