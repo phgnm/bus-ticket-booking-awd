@@ -28,7 +28,7 @@ class BookingRepository {
         const query = `
             SELECT seat_number FROM bookings 
             WHERE trip_id = $1 AND seat_number = ANY($2) 
-            AND booking_status != 'CANCELLED' FOR UPDATE
+            AND booking_status NOT IN ('CANCELLED', 'REFUNDED') FOR UPDATE
         `;
         const result = await client.query(query, [tripId, seats]);
         return result.rows; // Trả về danh sách ghế đã bị đặt
@@ -53,6 +53,7 @@ class BookingRepository {
     async createBookingRecord(client, bookingData) {
         const {
             tripId,
+            userId, // Thêm userId vào object nhận vào
             passengerName,
             passengerPhone,
             seatNumber,
@@ -62,12 +63,12 @@ class BookingRepository {
             orderCode,
         } = bookingData;
         const query = `
-            INSERT INTO bookings
-            (trip_id, passenger_name, passenger_phone, seat_number, total_price, booking_code, contact_email, booking_status, transaction_id)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, 'PENDING_PAYMENT', $8)
-        `;
+        INSERT INTO bookings
+        (trip_id, user_id, passenger_name, passenger_phone, seat_number, total_price, booking_code, contact_email, booking_status, transaction_id)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'PENDING_PAYMENT', $9) -- Thêm $2 và dịch chuyển các tham số`;
         await client.query(query, [
             tripId,
+            userId, // Truyền userId vào đây
             passengerName,
             passengerPhone,
             seatNumber,
@@ -134,6 +135,18 @@ class BookingRepository {
         `;
         const result = await pool.query(query, [userId, tripId]);
         return result.rows[0]; // Trả về vé nếu có, không thì undefined
+    }
+
+    // update seat number
+    async updateSeat(client, bookingId, newSeatNumber) {
+        const query = `
+            UPDATE bookings 
+            SET seat_number = $1
+            WHERE id = $2
+            RETURNING *
+        `;
+        const result = await client.query(query, [newSeatNumber, bookingId]);
+        return result.rows[0];
     }
 }
 

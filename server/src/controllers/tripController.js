@@ -1,5 +1,18 @@
 const tripService = require('../services/tripService');
 
+exports.getTripById = async (req, res) => {
+    try {
+        const trip = await tripService.getTripById(req.params.id);
+        res.json({ success: true, data: trip });
+    } catch (err) {
+        if (err.message === 'Trip not found') {
+            return res.status(404).json({ msg: 'Chuyến xe không tồn tại' });
+        }
+        console.error(err);
+        res.status(500).json({ msg: 'Lỗi server' });
+    }
+};
+
 exports.searchTrips = async (req, res) => {
     try {
         const { from, to, date } = req.query;

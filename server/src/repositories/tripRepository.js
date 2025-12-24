@@ -46,7 +46,7 @@ class TripRepository {
 
     async getSoldSeats(tripId) {
         const query =
-            "SELECT seat_number FROM bookings WHERE trip_id = $1 AND booking_status != 'CANCELLED'";
+            "SELECT seat_number FROM bookings WHERE trip_id = $1 AND booking_status NOT IN ('CANCELLED', 'REFUNDED')";
         const result = await pool.query(query, [tripId]);
         return result.rows.map((row) => row.seat_number);
     }

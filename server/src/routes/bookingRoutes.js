@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const bookingController = require('../controllers/bookingController');
 const paymentController = require('../controllers/paymentController');
+const authMiddleware = require('../middlewares/authMiddleware');
 
 /**
  * @swagger
@@ -142,7 +143,7 @@ router.get('/lookup', bookingController.lookupBooking);
  *       500:
  *         description: Server error
  */
-router.post('/', bookingController.createBooking);
+router.post('/', authMiddleware.optionalAuthenticateJWT, bookingController.createBooking);
 
 /**
  * @swagger
@@ -213,9 +214,8 @@ router.post('/', bookingController.createBooking);
  */
 router.post('/payment-webhook', paymentController.receiveWebHook);
 
-const authMiddleware = require('../middlewares/authMiddleware');
-
 router.get('/my-bookings', authMiddleware.authenticateJWT, bookingController.getMyBookings);
 
 router.post('/cancel/:id', authMiddleware.authenticateJWT, bookingController.cancelBooking);
+router.put('/change-seat/:id', authMiddleware.authenticateJWT, bookingController.changeSeat);
 module.exports = router;
