@@ -28,12 +28,12 @@ class AIService {
     _normalizeName(rawName) {
         if (!rawName) return '';
         const lowerName = rawName.toLowerCase().trim();
-        
+
         // check in alias
         if (LOCATION_ALIAS[lowerName]) {
             return LOCATION_ALIAS[lowerName];
         }
-        
+
         // return original name if no alias is found
         return rawName;
     }
@@ -41,10 +41,14 @@ class AIService {
     async chat(messages) {
         try {
             // prepare history
-            const history = messages.slice(0, -1).map(msg => ({
+            let history = messages.slice(0, -1).map(msg => ({
                 role: msg.role === 'assistant' ? 'model' : 'user',
                 parts: [{ text: msg.content }]
             }));
+
+            if (history.length > 0 && history[0].role !== 'user') {
+                history = history.filter(h => h.role === 'user');
+            }
 
             const lastMessage = messages[messages.length - 1].content;
 
@@ -58,17 +62,17 @@ class AIService {
             const result = await chatSession.sendMessage(lastMessage);
             const response = result.response;
 
-            
+
             // take list of function calls
             const functionCalls = response.functionCalls();
 
             // handle function calling
             if (functionCalls && functionCalls.length > 0) {
                 const call = functionCalls[0];
-                
+
                 if (call.name === 'search_trips') {
                     console.log("🤖 Gemini đang gọi hàm search_trips với tham số:", call.args);
-                    
+
                     // send execution code
                     const searchResult = await this._executeSearchTrips(call.args);
                     console.log("🔍 Kết quả tìm kiếm DB:", JSON.stringify(searchResult));
@@ -80,12 +84,12 @@ class AIService {
                                 name: 'search_trips',
                                 response: {
                                     name: 'search_trips',
-                                    content: searchResult 
+                                    content: searchResult
                                 }
                             }
                         }
                     ]);
-                    
+
                     const finalReply = finalResult.response.text();
                     console.log("✅ AI Reply sau khi gọi hàm:", finalReply);
                     return finalReply;

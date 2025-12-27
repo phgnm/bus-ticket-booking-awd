@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { motion } from 'framer-motion';
 import { MapPin, Calendar, ArrowRight, Bus } from 'lucide-react';
+import ChatWidget from '@/components/shared/ChatWidget';
 
 export default function HomePage() {
     const { user } = useAuth();
@@ -116,8 +117,7 @@ export default function HomePage() {
             </section>
             
 
-            {/* History Section (Giữ nguyên) */}
-            {/* ... */}
+            <ChatWidget />
         </div>
     );
 }

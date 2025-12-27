@@ -6,11 +6,18 @@ exports.chat = async (req, res) => {
 
         if (!messages || !Array.isArray(messages)) {
             return res.status(400).json({
-                msg: 'Invalid messages format'
+                success: false,
+                msg: 'Invalid messages format. Expected array of messages.'
             });
-
         }
-        
+
+        if (messages.length === 0) {
+            return res.status(400).json({
+                success: false,
+                msg: 'Messages array cannot be empty.'
+            });
+        }
+
         const reply = await aiService.chat(messages);
 
         res.json({
@@ -19,7 +26,10 @@ exports.chat = async (req, res) => {
         });
     }
     catch (err) {
-        console.error(err);
-        res.status(500).json({ msg: 'Lỗi Chatbot' });
+        console.error('❌ AI Controller Error:', err);
+        res.status(500).json({
+            success: false,
+            msg: 'Lỗi Chatbot: ' + (err.message || 'Unknown error')
+        });
     }
 }
