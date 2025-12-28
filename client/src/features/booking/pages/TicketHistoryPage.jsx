@@ -4,7 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
-    Loader2, Calendar, MapPin, Ticket, AlertTriangle, XCircle, Eye, ArrowRightLeft // [MỚI] Thêm icon ArrowRightLeft
+    Loader2, Calendar, MapPin, Ticket, AlertTriangle, XCircle, Eye, ArrowRightLeft, Star // [MỚI] Thêm icon Star
 } from 'lucide-react';
 import { format, differenceInHours } from 'date-fns';
 import { vi } from 'date-fns/locale';
@@ -19,7 +19,8 @@ import {
     DialogFooter
 } from "@/components/ui/dialog";
 import TicketView from '@/components/shared/TicketView';
-import ChangeSeatDialog from '../components/ChangeSeatDialog'; // [MỚI] Import Component Đổi ghế
+import ChangeSeatDialog from '../components/ChangeSeatDialog';
+import ReviewDialog from '../components/ReviewDialog'; // [MỚI] Import Component Đánh giá
 
 export default function TicketHistoryPage() {
     const { user } = useAuth();
@@ -33,9 +34,13 @@ export default function TicketHistoryPage() {
     const [ticketToCancel, setTicketToCancel] = useState(null);
     const [isCanceling, setIsCanceling] = useState(false);
 
-    // --- [MỚI] State cho chức năng Đổi ghế ---
+    // --- State cho chức năng Đổi ghế ---
     const [isChangeSeatOpen, setIsChangeSeatOpen] = useState(false);
     const [selectedBookingToChange, setSelectedBookingToChange] = useState(null);
+
+    // --- [MỚI] State cho chức năng Đánh giá ---
+    const [isReviewOpen, setIsReviewOpen] = useState(false);
+    const [bookingToReview, setBookingToReview] = useState(null);
 
     // Hàm gọi API lấy danh sách
     const fetchHistory = async () => {
@@ -61,7 +66,7 @@ export default function TicketHistoryPage() {
         if (user) fetchHistory();
     }, [user]);
 
-    // 1. Mở Dialog xác nhận
+    // 1. Mở Dialog xác nhận Hủy
     const openCancelDialog = (booking) => {
         setTicketToCancel(booking);
         setIsCancelDialogOpen(true);
@@ -86,7 +91,6 @@ export default function TicketHistoryPage() {
             }
         } catch (error) {
             console.error("Lỗi hủy vé:", error);
-            // Lấy msg lỗi từ Backend (ví dụ: "Chỉ được hủy trước 24h...")
             const errorMsg = error.response?.data?.msg || "Lỗi khi hủy vé. Vui lòng thử lại.";
 
             toast({
@@ -99,21 +103,32 @@ export default function TicketHistoryPage() {
         }
     };
 
-    // --- [MỚI] Handlers cho Đổi ghế ---
+    // --- Handlers cho Đổi ghế ---
     const handleOpenChangeSeat = (booking) => {
         setSelectedBookingToChange(booking);
         setIsChangeSeatOpen(true);
     };
 
     const handleChangeSeatSuccess = () => {
-        fetchHistory(); // Reload lại danh sách vé để cập nhật ghế mới
+        fetchHistory();
     };
 
+    // --- [MỚI] Handlers cho Đánh giá ---
+    const handleOpenReview = (booking) => {
+        setBookingToReview(booking);
+        setIsReviewOpen(true);
+    };
+
+    const handleReviewSuccess = () => {
+        fetchHistory();
+    };
+
+    // Helper: Màu trạng thái
     const getStatusColor = (status) => {
         switch (status) {
             case 'CONFIRMED': return 'bg-green-100 text-green-700 border-green-200';
             case 'PAID': return 'bg-blue-100 text-blue-700 border-blue-200';
-            case 'PENDING_PAYMENT': return 'bg-yellow-100 text-yellow-700 border-yellow-200'; // Đã sửa khớp với DB
+            case 'PENDING_PAYMENT': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
             case 'PENDING': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
             case 'CANCELLED': return 'bg-red-100 text-red-700 border-red-200';
             case 'REFUNDED': return 'bg-purple-100 text-purple-700 border-purple-200';
@@ -121,6 +136,7 @@ export default function TicketHistoryPage() {
         }
     };
 
+    // Helper: Tên trạng thái
     const getStatusText = (status) => {
         const map = {
             'CONFIRMED': 'Đã xác nhận',
@@ -133,11 +149,18 @@ export default function TicketHistoryPage() {
         return map[status] || status;
     };
 
-    // Helper kiểm tra quá hạn hủy (24h)
+    // Helper: Kiểm tra quá hạn hủy (24h)
     const isPastCancellationTime = (departureTime) => {
         const now = new Date();
         const departure = new Date(departureTime);
         return differenceInHours(departure, now) < 24;
+    };
+
+    // [MỚI] Helper: Kiểm tra chuyến đi đã hoàn thành chưa (để hiện nút Review)
+    const isTripCompleted = (departureTime) => {
+        const now = new Date();
+        const departure = new Date(departureTime);
+        return now > departure;
     };
 
     if (loading) return (
@@ -171,6 +194,10 @@ export default function TicketHistoryPage() {
                         const canCancel = item.booking_status !== 'CANCELLED' &&
                             item.booking_status !== 'REFUNDED';
                         const isTooLateToCancel = isPastCancellationTime(item.departure_time);
+                        const tripDone = isTripCompleted(item.departure_time);
+
+                        // Điều kiện hiển thị nút đánh giá: Đã thanh toán + Đã đi xong
+                        const canReview = (item.booking_status === 'PAID' || item.booking_status === 'COMPLETED') && tripDone;
 
                         return (
                             <Card key={item.id} className="hover:shadow-md transition-all duration-200 border-l-4 border-l-indigo-500">
@@ -196,7 +223,6 @@ export default function TicketHistoryPage() {
                                                 </span>
                                             </div>
 
-                                            {/* Hiển thị Lộ trình (Mới cập nhật) */}
                                             <div className="flex items-start gap-3">
                                                 <div className="flex flex-col items-center gap-0.5 mt-1">
                                                     <div className="w-2.5 h-2.5 rounded-full bg-white border-2 border-indigo-500"></div>
@@ -208,7 +234,6 @@ export default function TicketHistoryPage() {
                                                         <div className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Điểm đón</div>
                                                         <div className="font-medium text-slate-700 flex items-center gap-1">
                                                             <MapPin className="w-3 h-3 text-slate-400" />
-                                                            {/* Sử dụng from_loc cho khớp với Backend */}
                                                             {item.from_loc || item.from_location}
                                                         </div>
                                                     </div>
@@ -216,7 +241,6 @@ export default function TicketHistoryPage() {
                                                         <div className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Điểm trả</div>
                                                         <div className="font-medium text-slate-700 flex items-center gap-1">
                                                             <MapPin className="w-3 h-3 text-indigo-500" />
-                                                            {/* Sử dụng to_loc cho khớp với Backend */}
                                                             {item.to_loc || item.to_location}
                                                         </div>
                                                     </div>
@@ -243,7 +267,20 @@ export default function TicketHistoryPage() {
                                                 </div>
                                             </div>
 
-                                            <div className="flex gap-2 mt-4 justify-end">
+                                            <div className="flex gap-2 mt-4 justify-end flex-wrap">
+                                                {/* [MỚI] Nút Đánh giá (Hiển thị đầu tiên nếu đủ điều kiện) */}
+                                                {canReview && (
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="text-yellow-600 border-yellow-200 hover:bg-yellow-50 hover:text-yellow-700"
+                                                        onClick={() => handleOpenReview(item)}
+                                                    >
+                                                        <Star className="w-4 h-4 mr-1 fill-yellow-600" />
+                                                        Đánh giá
+                                                    </Button>
+                                                )}
+
                                                 {/* Nút Xem chi tiết */}
                                                 <Dialog>
                                                     <DialogTrigger asChild>
@@ -258,7 +295,6 @@ export default function TicketHistoryPage() {
                                                         <div className="py-4">
                                                             <TicketView booking={{
                                                                 ...item,
-                                                                // Đảm bảo TicketView cũng nhận được địa điểm đúng
                                                                 from_location: item.from_loc || item.from_location,
                                                                 to_location: item.to_loc || item.to_location,
                                                                 seats: [item.seat_number],
@@ -270,8 +306,8 @@ export default function TicketHistoryPage() {
                                                     </DialogContent>
                                                 </Dialog>
 
-                                                {/* [MỚI] Nút Đổi ghế */}
-                                                {canCancel && (
+                                                {/* Nút Đổi ghế (Chỉ hiện khi chưa đi và chưa hủy) */}
+                                                {canCancel && !tripDone && (
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
@@ -283,13 +319,13 @@ export default function TicketHistoryPage() {
                                                     </Button>
                                                 )}
 
-                                                {/* Nút Hủy vé */}
-                                                {canCancel && (
+                                                {/* Nút Hủy vé (Chỉ hiện khi chưa đi và chưa hủy) */}
+                                                {canCancel && !tripDone && (
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
                                                         className="text-red-600 hover:text-red-700 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                                                        disabled={isTooLateToCancel} // Disable nếu quá hạn
+                                                        disabled={isTooLateToCancel}
                                                         onClick={() => openCancelDialog(item)}
                                                     >
                                                         <XCircle className="w-4 h-4 mr-1" />
@@ -353,12 +389,20 @@ export default function TicketHistoryPage() {
                 </DialogContent>
             </Dialog>
 
-            {/* [MỚI] Dialog Đổi ghế */}
+            {/* Dialog Đổi ghế */}
             <ChangeSeatDialog
                 open={isChangeSeatOpen}
                 onOpenChange={setIsChangeSeatOpen}
                 booking={selectedBookingToChange}
                 onSuccess={handleChangeSeatSuccess}
+            />
+
+            {/* [MỚI] Dialog Đánh giá */}
+            <ReviewDialog
+                open={isReviewOpen}
+                onOpenChange={setIsReviewOpen}
+                booking={bookingToReview}
+                onSuccess={handleReviewSuccess}
             />
         </div>
     );
