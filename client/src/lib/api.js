@@ -43,3 +43,11 @@ export const changeBookingSeat = async (bookingId, newSeatNumber) => {
     const res = await api.put(`/bookings/change-seat/${bookingId}`, { newSeatNumber });
     return res.data;
 };
+
+
+// 3. Hàm gửi đánh giá chuyến đi
+export const createReview = async (data) => {
+    // data bao gồm: { tripId, rating, comment }
+    const res = await api.post('/reviews', data);
+    return res.data;
+};
