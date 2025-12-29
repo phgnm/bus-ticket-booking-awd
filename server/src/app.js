@@ -57,7 +57,7 @@ app.use('/api/seats', seatRoutes);
 app.use('/api/trips', tripRoutes);
 app.use('/api/locations', locationRoutes);
 app.use('/api/reviews', reviewRoutes);
-app.use('/api', adminRoutes);
+app.use('/api/admin', adminRoutes);
 app.use('/api', limiter);
 
 // Global Error Handler
