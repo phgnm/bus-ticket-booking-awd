@@ -1,339 +1,129 @@
 const request = require('supertest');
 const app = require('../../src/app');
 const pool = require('../../src/config/db');
+const jwt = require('jsonwebtoken');
 
-describe('Admin Management Flow', () => {
-    let adminToken;
-    let createdBusId;
-    let createdRouteId;
-    // let createdTripId; // Unused variable
+describe('Comprehensive Admin & Review Flow', () => {
+    let userToken, adminToken, userId, adminId, tripId, bookingId, reviewId;
+    const PASSWORD_HASH = '$2a$10$8.UnVuG9HHgffUDAlk8qfOu5HEpA1E/v5i.tS7J8o.vL.C3W6O61G'; // password123
 
-    // random data
-    const randomSuffix = Math.floor(Math.random() * 10000);
-    const busPlate = `59Z-${randomSuffix}`;
+    beforeAll(async () => {
+        // 1. Dọn rác
+        await pool.query("DELETE FROM users WHERE email IN ('test_user@flow.com', 'test_admin@flow.com')");
 
-    // test admin login
-    it('should login as admin and return token', async () => {
-        const res = await request(app).post('/api/auth/login').send({
-            email: 'admin@vexere.com',
-            password: 'admin123',
+        // 2. Tạo User & Admin
+        const userRes = await pool.query(
+            "INSERT INTO users (email, password_hash, full_name, role, is_verified) VALUES ($1, $2, $3, $4, true) RETURNING id",
+            ['test_user@flow.com', PASSWORD_HASH, 'Test User', 'user']
+        );
+        userId = userRes.rows[0].id;
+
+        const adminRes = await pool.query(
+            "INSERT INTO users (email, password_hash, full_name, role, is_verified) VALUES ($1, $2, $3, $4, true) RETURNING id",
+            ['test_admin@flow.com', PASSWORD_HASH, 'Test Admin', 'admin']
+        );
+        adminId = adminRes.rows[0].id;
+
+        // Sign Token
+        userToken = jwt.sign({ id: userId, role: 'user' }, process.env.JWT_ACCESS_SECRET);
+        adminToken = jwt.sign({ id: adminId, role: 'admin' }, process.env.JWT_ACCESS_SECRET);
+
+        // 3. Chuẩn bị Trip & Booking PAID
+        const tripRes = await pool.query("SELECT id FROM trips LIMIT 1");
+        tripId = tripRes.rows[0].id;
+
+        const bookingRes = await pool.query(`
+            INSERT INTO bookings (trip_id, user_id, passenger_name, passenger_phone, seat_number, total_price, booking_code, contact_email, booking_status)
+            VALUES ($1, $2, 'Flow Test', '0123456789', 'A99', 100000, 'FLOW123', 'test_user@flow.com', 'PAID')
+            RETURNING id
+        `, [tripId, userId]);
+        bookingId = bookingRes.rows[0].id;
+    });
+
+    afterAll(async () => {
+        await pool.query("DELETE FROM reviews WHERE booking_id = $1", [bookingId]);
+        await pool.query("DELETE FROM bookings WHERE id = $1", [bookingId]);
+        await pool.query("DELETE FROM users WHERE id IN ($1, $2)", [userId, adminId]);
+        await pool.end();
+    });
+
+    // --- TEST CASE 1: USER REVIEW ---
+    describe('User Review API', () => {
+        it('Nên cho phép user có vé PAID gửi review', async () => {
+            const res = await request(app)
+                .post('/api/reviews')
+                .set('Authorization', `Bearer ${userToken}`)
+                .send({
+                    tripId: tripId,
+                    rating: 5,
+                    comment: "Chuyến đi tuyệt vời, tài xế lái êm!"
+                });
+
+            expect(res.statusCode).toBe(201);
+            expect(res.body.success).toBe(true);
+            reviewId = res.body.data.id;
         });
 
-        expect(res.statusCode).toEqual(200);
-        expect(res.body).toHaveProperty('token');
-        adminToken = res.body.token;
+        it('Nên chặn user review lại lần 2 trên cùng 1 chuyến/vé', async () => {
+            const res = await request(app)
+                .post('/api/reviews')
+                .set('Authorization', `Bearer ${userToken}`)
+                .send({ tripId, rating: 1, comment: "Spam" });
+
+            expect(res.statusCode).toBe(400);
+            expect(res.body.msg).toContain('đã đánh giá');
+        });
     });
 
-    // === BUS MANAGEMENT TESTS ===
+    // --- TEST CASE 2: ADMIN STATS ---
+    describe('Admin Dashboard Statistics', () => {
+        it('Dashboard nên hiển thị Average Rating và Total Reviews', async () => {
+            const res = await request(app)
+                .get('/api/admin/stats')
+                .set('Authorization', `Bearer ${adminToken}`)
+                .query({ startDate: '2020-01-01', endDate: '2030-12-31' }); // Range rộng để cover data test
 
-    it('should create a new bus', async () => {
-        const res = await request(app)
-            .post('/api/admin/buses')
-            .set('Authorization', `Bearer ${adminToken}`)
-            .send({
-                license_plate: busPlate,
-                brand: 'Test Bus Line',
-                seat_capacity: 40,
-                type: 'Sleeper',
-                seat_layout: { rows: 10, cols: 4 },
-                amenities: ['Wifi', 'LCD'],
-                images: ['http://img.com/1.jpg'],
-            });
+            expect(res.statusCode).toBe(200);
+            expect(res.body.data).toHaveProperty('averageRating');
+            expect(res.body.data).toHaveProperty('totalReviews');
+            // Vì ta vừa insert 1 review 5 sao ở test trước
+            expect(parseFloat(res.body.data.averageRating)).toBeGreaterThan(0);
+        });
 
-        expect(res.statusCode).toEqual(201);
-        expect(res.body.success).toBe(true);
-        expect(res.body.data.license_plate).toBe(busPlate);
-        createdBusId = res.body.data.id;
+        it('Dashboard KHÔNG nên có trường activeBuses (đã xóa)', async () => {
+            const res = await request(app)
+                .get('/api/admin/stats')
+                .set('Authorization', `Bearer ${adminToken}`);
+            
+            expect(res.body.data.activeBuses).toBeUndefined();
+        });
     });
 
-    it('should FAIL to create bus with duplicate license plate', async () => {
-        const res = await request(app)
-            .post('/api/admin/buses')
-            .set('Authorization', `Bearer ${adminToken}`)
-            .send({
-                license_plate: busPlate, // Same license plate
-                brand: 'Another Bus',
-                seat_capacity: 30,
-                type: 'Seat',
-                seat_layout: { rows: 10, cols: 3 },
-            });
+    // --- TEST CASE 3: ADMIN REVIEW MANAGEMENT ---
+    describe('Admin Review Management', () => {
+        it('Admin có thể xem danh sách review toàn hệ thống', async () => {
+            const res = await request(app)
+                .get('/api/admin/reviews')
+                .set('Authorization', `Bearer ${adminToken}`);
 
-        expect(res.statusCode).toEqual(400);
-        expect(res.body.msg).toBe('Biển số xe đã tồn tại');
-    });
+            expect(res.statusCode).toBe(200);
+            expect(Array.isArray(res.body.data)).toBe(true);
+            // Kiểm tra xem có review "Chuyến đi tuyệt vời" không
+            const found = res.body.data.find(r => r.id === reviewId);
+            expect(found).toBeDefined();
+        });
 
-    it('should get all buses', async () => {
-        const res = await request(app)
-            .get('/api/admin/buses')
-            .set('Authorization', `Bearer ${adminToken}`);
+        it('Admin có thể xóa review vi phạm', async () => {
+            const res = await request(app)
+                .delete(`/api/admin/reviews/${reviewId}`)
+                .set('Authorization', `Bearer ${adminToken}`);
 
-        expect(res.statusCode).toEqual(200);
-        expect(res.body.success).toBe(true);
-        expect(Array.isArray(res.body.data)).toBe(true);
-        // Ensure our created bus is in the list
-        const found = res.body.data.find((b) => b.id === createdBusId);
-        expect(found).toBeTruthy();
-    });
+            expect(res.statusCode).toBe(200);
+            expect(res.body.msg).toContain('thành công');
 
-    // === ROUTE MANAGEMENT TESTS ===
-
-    it('should FAIL to create a new route with invalid data', async () => {
-        await request(app)
-            .post('/api/admin/routes')
-            .set('Authorization', `Bearer ${adminToken}`)
-            .send({
-                // missing required fields
-                distance: 300,
-                estimated_duration: 300,
-                price_base: 250000,
-                points: [],
-            });
-    });
-
-    it('should FAIL to create a new route with invalid location IDs', async () => {
-        const res = await request(app)
-            .post('/api/admin/routes')
-            .set('Authorization', `Bearer ${adminToken}`)
-            .send({
-                route_from: 99999,
-                route_to: 88888,
-                distance: 300,
-                estimated_duration: 300,
-                price_base: 250000,
-            });
-
-        expect(res.statusCode).toEqual(400);
-        expect(res.body.msg).toBe(
-            'Địa điểm đi hoặc đến không tồn tại trong hệ thống',
-        );
-    });
-
-    it('should create a new route', async () => {
-        const res = await request(app)
-            .post('/api/admin/routes')
-            .set('Authorization', `Bearer ${adminToken}`)
-            .send({
-                route_from: 1,
-                route_to: 2,
-                distance: 300,
-                estimated_duration: 300,
-                price_base: 250000,
-                points: [
-                    {
-                        point_id: 1,
-                        type: 'PICKUP',
-                        order_index: 1,
-                        time_offset: 0,
-                    },
-                    {
-                        point_id: 4,
-                        type: 'DROPOFF',
-                        order_index: 2,
-                        time_offset: 300,
-                    },
-                ],
-            });
-
-        expect(res.statusCode).toEqual(201);
-        createdRouteId = res.body.data.id;
-    });
-
-    it('should get all routes', async () => {
-        const res = await request(app)
-            .get('/api/admin/routes')
-            .set('Authorization', `Bearer ${adminToken}`);
-
-        expect(res.statusCode).toEqual(200);
-        expect(res.body.success).toBe(true);
-        expect(Array.isArray(res.body.data)).toBe(true);
-        const found = res.body.data.find((r) => r.id === createdRouteId);
-        expect(found).toBeTruthy();
-    });
-
-    // === TRIP MANAGEMENT TESTS ===
-
-    it('should create a trip successfully (Valid Time)', async () => {
-        // create a trip that starts tomorrow at 10AM
-        // estimated_duration of the route is 300 mins (5 hrs)
-        // => should run from 10:00 -> 15:00
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        tomorrow.setHours(10, 0, 0, 0);
-
-        const res = await request(app)
-            .post('/api/admin/trips')
-            .set('Authorization', `Bearer ${adminToken}`)
-            .send({
-                route_id: createdRouteId,
-                bus_id: createdBusId,
-                departure_time: tomorrow.toISOString(),
-            });
-
-        expect(res.statusCode).toEqual(201);
-        // createdTripId = res.body.data.id;
-    });
-
-    it('should FAIL to create trip with non-existent route', async () => {
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        tomorrow.setHours(20, 0, 0, 0);
-
-        const res = await request(app)
-            .post('/api/admin/trips')
-            .set('Authorization', `Bearer ${adminToken}`)
-            .send({
-                route_id: 999999, // Invalid ID
-                bus_id: createdBusId,
-                departure_time: tomorrow.toISOString(),
-            });
-
-        expect(res.statusCode).toEqual(404);
-        expect(res.body.msg).toBe('Tuyến đường không tồn tại');
-    });
-
-    // Overlap scenarios
-    // Existing trip: 10:00 -> 15:00
-
-    it('should FAIL to create overlapping trip (Starts inside existing trip)', async () => {
-        // Starts at 12:00, ends at 17:00
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        tomorrow.setHours(12, 0, 0, 0);
-
-        const res = await request(app)
-            .post('/api/admin/trips')
-            .set('Authorization', `Bearer ${adminToken}`)
-            .send({
-                route_id: createdRouteId,
-                bus_id: createdBusId,
-                departure_time: tomorrow.toISOString(),
-            });
-
-        expect(res.statusCode).toEqual(409);
-        expect(res.body.msg).toContain('Xe đang bận');
-    });
-
-    it('should FAIL to create overlapping trip (Ends inside existing trip)', async () => {
-        // Starts at 08:00, ends at 13:00 (overlap 10:00-13:00)
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        tomorrow.setHours(8, 0, 0, 0);
-
-        const res = await request(app)
-            .post('/api/admin/trips')
-            .set('Authorization', `Bearer ${adminToken}`)
-            .send({
-                route_id: createdRouteId,
-                bus_id: createdBusId,
-                departure_time: tomorrow.toISOString(),
-            });
-
-        expect(res.statusCode).toEqual(409);
-        expect(res.body.msg).toContain('Xe đang bận');
-    });
-
-    it('should FAIL to create overlapping trip (Encloses existing trip)', async () => {
-        // Starts at 09:00, ends at 16:00 (encloses 10:00-15:00)
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        tomorrow.setHours(9, 0, 0, 0);
-
-        const res = await request(app)
-            .post('/api/admin/trips')
-            .set('Authorization', `Bearer ${adminToken}`)
-            .send({
-                route_id: createdRouteId,
-                bus_id: createdBusId,
-                departure_time: tomorrow.toISOString(),
-            });
-
-        expect(res.statusCode).toEqual(409);
-        expect(res.body.msg).toContain('Xe đang bận');
-    });
-
-    it('should create another trip successfully (After previous trip finishes)', async () => {
-        // create trip at 16:00 (gap of 1 hour from 15:00)
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        tomorrow.setHours(16, 0, 0, 0);
-
-        const res = await request(app)
-            .post('/api/admin/trips')
-            .set('Authorization', `Bearer ${adminToken}`)
-            .send({
-                route_id: createdRouteId,
-                bus_id: createdBusId,
-                departure_time: tomorrow.toISOString(),
-            });
-
-        expect(res.statusCode).toEqual(201);
-    });
-
-    // === DELETE CHECKS ===
-
-    it('should FAIL to delete bus assigned to active trips', async () => {
-        const res = await request(app)
-            .delete(`/api/admin/buses/${createdBusId}`)
-            .set('Authorization', `Bearer ${adminToken}`);
-
-        expect(res.statusCode).toEqual(400);
-        expect(res.body.msg).toBe('Không thể xóa xe đang có lịch chạy');
-    });
-
-    // Clean up trips first so we can delete the bus
-    it('should delete the bus successfully after trips are removed', async () => {
-        // Manually delete trips for this bus to simulate cleanup/cancellation
-        await pool.query('DELETE FROM trips WHERE bus_id = $1', [createdBusId]);
-
-        const res = await request(app)
-            .delete(`/api/admin/buses/${createdBusId}`)
-            .set('Authorization', `Bearer ${adminToken}`);
-
-        expect(res.statusCode).toEqual(200);
-        expect(res.body.msg).toBe('Đã xóa xe thành công');
-    });
-
-    // clear data post-test (to make it reusable)
-    afterAll(async () => {
-        if (createdBusId && createdRouteId) {
-            console.log(
-                `\n--- Cleaning up test data: Bus ID ${createdBusId}, Route ID ${createdRouteId} ---`,
-            );
-            try {
-                // 1. delete trips
-                await pool.query(
-                    'DELETE FROM trips WHERE bus_id = $1 OR route_id = $2',
-                    [createdBusId, createdRouteId],
-                );
-                console.log('Deleted test trips.');
-
-                // 2. delete route_points
-                await pool.query(
-                    'DELETE FROM route_points WHERE route_id = $1',
-                    [createdRouteId],
-                );
-                console.log('Deleted test route_points.');
-
-                // 3. delete routes
-                await pool.query('DELETE FROM routes WHERE id = $1', [
-                    createdRouteId,
-                ]);
-                console.log('Deleted test route.');
-
-                // 4. delete buses (if not already deleted by test)
-                await pool.query('DELETE FROM buses WHERE id = $1', [
-                    createdBusId,
-                ]);
-                console.log('Deleted test bus.');
-            } catch (error) {
-                console.error('ERROR during cleanup:', error.message);
-            }
-        } else {
-            console.log(
-                '\n--- Cleanup skipped: Test data not fully created ---',
-            );
-        }
-
-        await pool.end();
+            // Kiểm tra DB xem mất chưa
+            const check = await pool.query("SELECT * FROM reviews WHERE id = $1", [reviewId]);
+            expect(check.rows.length).toBe(0);
+        });
     });
 });

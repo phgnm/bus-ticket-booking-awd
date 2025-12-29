@@ -142,6 +142,10 @@ class TripRepository {
             trips: dataResult.rows,
         };
     }
+
+    async delete(id) {
+        await pool.query('DELETE FROM trips WHERE id = $1', [id]);
+    }
 }
 
 module.exports = new TripRepository();

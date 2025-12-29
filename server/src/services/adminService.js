@@ -3,6 +3,7 @@ const busRepo = require('../repositories/busRepository');
 const routeRepo = require('../repositories/routeRepository');
 const tripRepo = require('../repositories/tripRepository');
 const statsRepo = require('../repositories/statsRepository');
+const reviewRepo = require('../repositories/reviewRepository');
 
 class AdminService {
     // --- BUS ---
@@ -144,15 +145,28 @@ class AdminService {
             data: {
                 revenue: parseFloat(stats.total_revenue),
                 totalBookings: parseInt(stats.total_bookings),
-                activeBuses: 0,
                 occupancyRate: parseFloat(data.occupancy?.rate || 0),
                 cancelRate: parseFloat(cancelRate),
+                averageRating: parseFloat(data.reviews?.avg_rating || 0).toFixed(1),
+            totalReviews: parseInt(data.reviews?.total_reviews || 0),
                 revenueChart: data.chart,
                 topRoutes: data.topRoutes,
                 busPerformance: data.busPerf,
             },
         };
     }
+
+    // --- REVIEWS ---
+    async getReviews(query) {
+        const { rating, trip_id, page = 1, limit = 20 } = query;
+        const offset = (page - 1) * limit;
+        return await reviewRepo.findAll({ rating, trip_id, limit, offset });
+    }
+
+    async deleteReview(id) {
+        return await reviewRepo.delete(id);
+    }
+
 }
 
 module.exports = new AdminService();

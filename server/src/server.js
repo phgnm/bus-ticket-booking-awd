@@ -4,6 +4,7 @@ const pool = require('./config/db');
 const initCronJobs = require('./cron/cronJob');
 const bcrypt = require('bcryptjs');
 const { Server } = require('socket.io');
+const seedAdmin = require('./utils/seedAdmin');
 require('dotenv').config();
 
 const PORT = process.env.PORT || 5000;
@@ -59,6 +60,8 @@ server.listen(PORT, async () => {
         initCronJobs(io);
         console.log(`Server is running on port ${PORT}`);
         console.log(`API Endpoint: http://localhost:${PORT}`);
+
+        await seedAdmin();
 
         if (process.env.CI !== 'true') {
             await createDefaultAdmin();

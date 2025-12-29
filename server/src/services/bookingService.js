@@ -222,6 +222,12 @@ class BookingService {
             client.release();
         }
     }
+
+    async deleteBooking(id) {
+        const booking = await bookingRepository.delete(id);
+        if (!booking) throw new Error('Không tìm thấy vé để xóa');
+        return booking;
+    }
 }
 
 module.exports = new BookingService();

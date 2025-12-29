@@ -24,6 +24,23 @@ class LocationService {
 
         return locations;
     }
+
+    async createLocation(data) {
+        const location = await locationRepository.create(data);
+        await redisClient.del('locations:all'); // Xóa cache
+        return location;
+    }
+
+    async updateLocation(id, data) {
+        const location = await locationRepository.update(id, data);
+        await redisClient.del('locations:all');
+        return location;
+    }
+
+    async deleteLocation(id) {
+        await locationRepository.delete(id);
+        await redisClient.del('locations:all');
+    }
 }
 
 module.exports = new LocationService();

@@ -148,6 +148,11 @@ class BookingRepository {
         const result = await client.query(query, [newSeatNumber, bookingId]);
         return result.rows[0];
     }
+
+    async delete(id) {
+        const result = await pool.query('DELETE FROM bookings WHERE id = $1 RETURNING *', [id]);
+        return result.rows[0];
+    }
 }
 
 module.exports = new BookingRepository();

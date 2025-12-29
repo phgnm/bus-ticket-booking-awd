@@ -93,3 +93,24 @@ exports.getDashboardStats = async (req, res) => {
         res.status(500).json({ msg: 'Lỗi khi lấy thống kê' });
     }
 };
+
+// == REVIEW ==
+exports.getReviews = async (req, res) => {
+    try {
+        const data = await adminService.getReviews(req.query);
+        res.json({ success: true, data });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ msg: 'Lỗi khi lấy danh sách đánh giá' });
+    }
+};
+
+exports.deleteReview = async (req, res) => {
+    try {
+        await adminService.deleteReview(req.params.id);
+        res.json({ success: true, msg: 'Đã xóa đánh giá thành công' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ msg: 'Lỗi khi xóa đánh giá' });
+    }
+};
