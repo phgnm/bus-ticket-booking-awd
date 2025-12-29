@@ -209,6 +209,14 @@ class TripService {
             console.error('Email Error:', e);
         }
     }
+
+    async deleteTrip(id) {
+        const soldSeats = await tripRepository.getSoldSeats(id);
+        if (soldSeats.length > 0) {
+            throw new Error('Không thể xóa chuyến xe đã có người đặt vé.');
+        }
+        await tripRepository.delete(id);
+    }
 }
 
 module.exports = new TripService();
