@@ -96,9 +96,6 @@ router.use(authenticateJWT, authorizeRole('admin'));
  *                     totalBookings:
  *                       type: integer
  *                       example: 320
- *                     activeBuses:
- *                       type: integer
- *                       example: 0
  *                     occupancyRate:
  *                       type: number
  *                       format: float
@@ -370,5 +367,52 @@ router.post('/admin/routes', adminController.createRoute);
  *         description: Server error
  */
 router.post('/admin/trips', adminController.createTrip);
+
+/**
+ * @swagger
+ * /admin/reviews:
+ *   get:
+ *     summary: Get all reviews (Admin only)
+ *     tags:
+ *       - Admin
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: rating
+ *         schema:
+ *           type: integer
+ *         description: Lọc theo số sao
+ *       - in: query
+ *         name: trip_id
+ *         schema:
+ *           type: integer
+ *         description: Lọc theo chuyến xe
+ *     responses:
+ *       200:
+ *         description: Danh sách đánh giá
+ */
+router.get('/admin/reviews', adminController.getReviews);
+
+/**
+ * @swagger
+ * /admin/reviews/{id}:
+ *   delete:
+ *     summary: Delete a review (Admin only)
+ *     tags:
+ *       - Admin
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Review deleted
+ */
+router.delete('/admin/reviews/:id', adminController.deleteReview);
 
 module.exports = router;

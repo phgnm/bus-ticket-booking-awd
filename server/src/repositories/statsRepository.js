@@ -39,11 +39,10 @@ class StatsRepository {
     async getDashboardStats(filterParams, chartFormat, truncType) {
         const { whereSql, values } = this._buildWhereClause(filterParams, 1);
 
-        const [general, chart, topRoutes, busPerf, occupancy] =
+        const [general, chart, topRoutes, busPerf, occupancy, reviewStats] =
             await Promise.all([
                 // general query
-                pool.query(
-                    `
+                pool.query(`
                 SELECT 
                     COALESCE(SUM(CASE WHEN b.booking_status = 'PAID' THEN b.total_price ELSE 0 END), 0) as total_revenue,
                     COUNT(CASE WHEN b.booking_status = 'PAID' THEN 1 END) as total_bookings,
@@ -51,9 +50,7 @@ class StatsRepository {
                 FROM bookings b
                 LEFT JOIN trips t ON b.trip_id = t.id
                 LEFT JOIN routes r ON t.route_id = r.id
-                WHERE 1=1 ${whereSql}`,
-                    values,
-                ),
+                WHERE 1=1 ${whereSql}`, values),
 
                 // revenue chart
                 pool.query(
@@ -127,6 +124,18 @@ class StatsRepository {
                         filterParams.endDate + ' 23:59:59',
                     ],
                 ),
+
+                // average review rating
+                pool.query(`
+                    SELECT 
+                        COALESCE(AVG(r.rating), 0) as avg_rating,
+                        COUNT(r.id) as total_reviews
+                    FROM reviews r
+                    JOIN trips t ON r.trip_id = t.id
+                    JOIN routes rt ON t.route_id = rt.id
+                    WHERE 1=1 ${whereSql.replace(/b\.created_at/g, 'r.created_at')}`, 
+                    values
+                )
             ]);
 
         return {
@@ -135,6 +144,7 @@ class StatsRepository {
             topRoutes: topRoutes.rows,
             busPerf: busPerf.rows,
             occupancy: occupancy.rows[0],
+            reviews: reviewStats.rows[0],
         };
     }
 }
