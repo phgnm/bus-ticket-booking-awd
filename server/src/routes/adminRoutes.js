@@ -146,7 +146,7 @@ router.use(authenticateJWT, authorizeRole('admin'));
  *       500:
  *         description: Internal server error
  */
-router.get('/admin/stats', adminController.getDashboardStats);
+router.get('/stats', adminController.getDashboardStats);
 
 /**
  * @swagger
@@ -171,7 +171,7 @@ router.get('/admin/stats', adminController.getDashboardStats);
  *                   items:
  *                     type: object
  */
-router.get('/admin/buses', adminController.getBuses);
+router.get('/buses', adminController.getBuses);
 
 /**
  * @swagger
@@ -222,7 +222,7 @@ router.get('/admin/buses', adminController.getBuses);
  *       500:
  *         description: Server error
  */
-router.post('/admin/buses', adminController.createBus);
+router.post('/buses', adminController.createBus);
 
 /**
  * @swagger
@@ -247,7 +247,7 @@ router.post('/admin/buses', adminController.createBus);
  *       500:
  *         description: Server error
  */
-router.delete('/admin/buses/:id', adminController.deleteBus);
+router.delete('/buses/:id', adminController.deleteBus);
 
 /**
  * @swagger
@@ -272,7 +272,7 @@ router.delete('/admin/buses/:id', adminController.deleteBus);
  *                   items:
  *                     type: object
  */
-router.get('/admin/routes', adminController.getRoutes);
+router.get('/routes', adminController.getRoutes);
 
 /**
  * @swagger
@@ -328,7 +328,7 @@ router.get('/admin/routes', adminController.getRoutes);
  *       500:
  *         description: Server error
  */
-router.post('/admin/routes', adminController.createRoute);
+router.post('/routes', adminController.createRoute);
 
 /**
  * @swagger
@@ -366,7 +366,7 @@ router.post('/admin/routes', adminController.createRoute);
  *       500:
  *         description: Server error
  */
-router.post('/admin/trips', adminController.createTrip);
+router.post('/trips', adminController.createTrip);
 
 /**
  * @swagger
@@ -392,7 +392,7 @@ router.post('/admin/trips', adminController.createTrip);
  *       200:
  *         description: Danh sách đánh giá
  */
-router.get('/admin/reviews', adminController.getReviews);
+router.get('/reviews', adminController.getReviews);
 
 /**
  * @swagger
@@ -413,6 +413,6 @@ router.get('/admin/reviews', adminController.getReviews);
  *       200:
  *         description: Review deleted
  */
-router.delete('/admin/reviews/:id', adminController.deleteReview);
+router.delete('/reviews/:id', adminController.deleteReview);
 
 module.exports = router;

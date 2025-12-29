@@ -11,7 +11,7 @@ const aiController = require('../controllers/aiController');
 
 /**
  * @swagger
- * /api/ai/chat:
+ * /ai/chat:
  *   post:
  *     summary: Chat với trợ lý ảo
  *     description: >

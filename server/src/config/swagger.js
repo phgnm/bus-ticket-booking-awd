@@ -1,4 +1,5 @@
 const swaggerJsdoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
 const path = require('path');
 
 const options = {
@@ -15,7 +16,7 @@ const options = {
         },
         servers: [
             {
-                url: process.env.VITE_API_URL || 'http://localhost:5000/api',
+                url: process.env.VITE_API_URL || 'http://localhost:3000/api',
                 description: 'Development server',
             },
         ],
@@ -39,4 +40,4 @@ const options = {
 
 const swaggerSpec = swaggerJsdoc(options);
 
-module.exports = swaggerSpec;
+module.exports = { swaggerUi, swaggerSpec };
