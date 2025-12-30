@@ -26,6 +26,7 @@ import AdminDashboard from '@/features/admin/pages/AdminDashboard';
 import BusManagement from '@/features/admin/pages/BusManagement';
 import RouteManagement from '@/features/admin/pages/RouteManagement';
 import TripManagement from '@/features/admin/pages/TripManagement';
+import ReviewManagement from '@/features/admin/pages/ReviewManagement';
 
 import './App.css';
 
@@ -87,6 +88,7 @@ function App() {
                 <Route path="buses" element={<BusManagement />} />
                 <Route path="routes" element={<RouteManagement />} />
                 <Route path="trips" element={<TripManagement />} />
+                <Route path="reviews" element={<ReviewManagement />} />
               </Route>
             </Route>
 
