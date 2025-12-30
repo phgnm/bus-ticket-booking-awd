@@ -7,6 +7,7 @@ import {
     CalendarDays,
     LogOut,
     Menu,
+    MessageSquare // Thêm icon MessageSquare
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
@@ -17,11 +18,13 @@ export default function AdminLayout() {
     const navigate = useNavigate();
     const { logout, user } = useAuth();
 
+    // Định nghĩa các mục menu, thêm mục "Đánh giá"
     const menuItems = [
         { path: '/admin/dashboard', label: 'Tổng quan', icon: LayoutDashboard },
         { path: '/admin/buses', label: 'Quản lý xe', icon: Bus },
         { path: '/admin/routes', label: 'Tuyến đường', icon: Map },
         { path: '/admin/trips', label: 'Lịch trình', icon: CalendarDays },
+        { path: '/admin/reviews', label: 'Đánh giá', icon: MessageSquare }, // Item mới
     ];
 
     const handleLogout = () => {
@@ -40,64 +43,70 @@ export default function AdminLayout() {
             )}
 
             {/* Sidebar */}
-            <aside className={`
-                fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 transform transition-transform duration-200 ease-in-out
-                lg:sticky lg:top-0 lg:h-screen lg:overflow-y-auto
-                ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-            `}>
-                <div className="h-16 flex items-center justify-center border-b border-slate-100 flex-shrink-0">
-                    <h1 className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
-                        Vexere Admin
-                    </h1>
-                </div>
-
-                <div className="p-4 space-y-1 flex-1">
-                    {menuItems.map((item) => {
-                        const Icon = item.icon;
-                        const isActive = location.pathname === item.path;
-                        return (
-                            <Link
-                                key={item.path}
-                                to={item.path}
-                                onClick={() => setIsSidebarOpen(false)}
-                                className={`
-                                    flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
-                                    ${isActive
-                                        ? 'bg-indigo-50 text-indigo-700'
-                                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}
-                                `}
-                            >
-                                <Icon className={`w-5 h-5 ${isActive ? 'text-indigo-600' : 'text-slate-400'}`} />
-                                {item.label}
-                            </Link>
-                        );
-                    })}
-                </div>
-
-                {/* Footer Sidebar - Dùng mt-auto để đẩy xuống đáy nếu menu ngắn, sticky bottom nếu menu dài */}
-                <div className="p-4 border-t border-slate-100 bg-white sticky bottom-0">
-                    <div className="flex items-center gap-3 mb-4 px-2">
-                        <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm">
-                            {user?.fullName?.charAt(0) || 'A'}
-                        </div>
-                        <div className="flex-1 overflow-hidden">
-                            <p className="text-sm font-medium text-slate-900 truncate">{user?.fullName || 'Admin User'}</p>
-                            <p className="text-xs text-slate-500 truncate">{user?.email}</p>
-                        </div>
+            <aside
+                className={`fixed top-0 left-0 z-50 h-screen w-64 bg-white border-r border-slate-200 transition-transform duration-200 lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+                    }`}
+            >
+                <div className="h-full flex flex-col">
+                    {/* Sidebar Header / Logo */}
+                    <div className="h-16 flex items-center px-6 border-b border-slate-200">
+                        <Bus className="w-6 h-6 text-indigo-600 mr-2" />
+                        <span className="text-lg font-bold text-slate-900">Admin Portal</span>
                     </div>
-                    <Button
-                        variant="ghost"
-                        className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
-                        onClick={handleLogout}
-                    >
-                        <LogOut className="w-4 h-4 mr-2" />
-                        Đăng xuất
-                    </Button>
+
+                    {/* Navigation Links */}
+                    <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+                        {menuItems.map((item) => {
+                            // Kiểm tra active state (bao gồm cả sub-routes)
+                            const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/');
+
+                            return (
+                                <Link
+                                    key={item.path}
+                                    to={item.path}
+                                    className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive
+                                            ? 'bg-indigo-50 text-indigo-600'
+                                            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                                        }`}
+                                    onClick={() => setIsSidebarOpen(false)}
+                                >
+                                    <item.icon className={`w-5 h-5 mr-3 ${isActive ? 'text-indigo-600' : 'text-slate-400'}`} />
+                                    {item.label}
+                                </Link>
+                            );
+                        })}
+                    </nav>
+
+                    {/* User Profile & Logout */}
+                    <div className="p-4 border-t border-slate-200">
+                        <div className="flex items-center mb-4">
+                            <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold mr-3 shrink-0">
+                                {user?.full_name?.[0] || 'A'}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-slate-900 truncate">
+                                    {user?.full_name || 'Admin User'}
+                                </p>
+                                <p className="text-xs text-slate-500 truncate">
+                                    {user?.email}
+                                </p>
+                            </div>
+                        </div>
+                        <Button
+                            variant="ghost"
+                            className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+                            onClick={handleLogout}
+                        >
+                            <LogOut className="w-4 h-4 mr-2" />
+                            Đăng xuất
+                        </Button>
+                    </div>
                 </div>
             </aside>
 
-            {/* Main Content */}
-            <div className="flex-1 flex flex-col min-w-0">
+            {/* Main Content Area */}
+            <div className="flex-1 flex flex-col min-w-0 lg:pl-64 transition-all duration-200">
+                {/* Mobile Header */}
                 <header className="h-16 bg-white border-b border-slate-200 lg:hidden flex items-center justify-between px-4 sticky top-0 z-30">
                     <Button
                         variant="ghost"
@@ -107,7 +116,7 @@ export default function AdminLayout() {
                         <Menu className="w-6 h-6 text-slate-600" />
                     </Button>
                     <span className="font-semibold text-slate-900">Admin Portal</span>
-                    <div className="w-10" /> {/* Spacer */}
+                    <div className="w-10" /> {/* Spacer để cân giữa title */}
                 </header>
 
                 <main className="flex-1 p-6">
