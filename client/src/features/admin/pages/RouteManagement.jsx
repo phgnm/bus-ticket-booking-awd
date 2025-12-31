@@ -55,7 +55,7 @@ export default function RouteManagement() {
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="grid grid-cols-2 gap-2">
                             <div>
-                                <Label>Điểm đi</Label>
+                                <Label className="py-2">Điểm đi</Label>
                                 <select className="w-full border rounded p-2 text-sm" 
                                     value={formData.route_from} onChange={e => setFormData({...formData, route_from: e.target.value})} required>
                                     <option value="">Chọn...</option>
@@ -63,7 +63,7 @@ export default function RouteManagement() {
                                 </select>
                             </div>
                             <div>
-                                <Label>Điểm đến</Label>
+                                <Label className="py-2">Điểm đến</Label>
                                 <select className="w-full border rounded p-2 text-sm"
                                     value={formData.route_to} onChange={e => setFormData({...formData, route_to: e.target.value})} required>
                                     <option value="">Chọn...</option>
@@ -72,15 +72,15 @@ export default function RouteManagement() {
                             </div>
                         </div>
                         <div>
-                            <Label>Khoảng cách (km)</Label>
+                            <Label className="py-2">Khoảng cách (km)</Label>
                             <Input type="number" value={formData.distance} onChange={e => setFormData({...formData, distance: e.target.value})} required />
                         </div>
                         <div>
-                            <Label>Thời gian chạy (phút)</Label>
+                            <Label className="py-2">Thời gian chạy (phút)</Label>
                             <Input type="number" value={formData.estimated_duration} onChange={e => setFormData({...formData, estimated_duration: e.target.value})} required />
                         </div>
                         <div>
-                            <Label>Giá vé cơ bản (VND)</Label>
+                            <Label className="py-2">Giá vé cơ bản (VND)</Label>
                             <Input type="number" value={formData.price_base} onChange={e => setFormData({...formData, price_base: e.target.value})} required />
                         </div>
                         <Button type="submit" className="w-full"><Plus className="w-4 h-4 mr-2"/> Tạo Tuyến</Button>

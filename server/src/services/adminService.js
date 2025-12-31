@@ -95,6 +95,25 @@ class AdminService {
         });
     }
 
+    async getAllTrips(query) {
+        const page = parseInt(query.page) || 1;
+        const limit = parseInt(query.limit) || 10;
+        const offset = (page - 1) * limit;
+
+        return await tripRepo.findAllForAdmin({ limit, offset });
+    }
+
+    async deleteTrip(id) {
+        // 1. Kiểm tra xem chuyến đi có vé đã bán chưa
+        const soldSeats = await tripRepo.getSoldSeats(id);
+        if (soldSeats.length > 0) {
+            throw new Error('Không thể xóa chuyến đi đã có hành khách đặt vé!');
+        }
+
+        // 2. Nếu chưa có vé nào, tiến hành xóa
+        return await tripRepo.delete(id);
+    }
+
     // --- STATS ---
     async getDashboardStats(query) {
         const { startDate, endDate, route_id, bus_id, location_id } = query;
