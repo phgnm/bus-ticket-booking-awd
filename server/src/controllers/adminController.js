@@ -83,6 +83,29 @@ exports.createTrip = async (req, res) => {
     }
 };
 
+exports.getAllTrips = async (req, res) => {
+    try {
+        const result = await adminService.getAllTrips(req.query);
+        res.json({ success: true, ...result });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ msg: 'Lỗi khi lấy danh sách chuyến đi' });
+    }
+};
+
+exports.deleteTrip = async (req, res) => {
+    try {
+        await adminService.deleteTrip(req.params.id);
+        res.json({ success: true, msg: 'Đã xóa chuyến đi thành công' });
+    } catch (err) {
+        console.error(err);
+        if (err.message.includes('đã có hành khách')) {
+            return res.status(400).json({ msg: err.message });
+        }
+        res.status(500).json({ msg: 'Lỗi server khi xóa chuyến đi' });
+    }
+};
+
 // == DASHBOARD ==
 exports.getDashboardStats = async (req, res) => {
     try {

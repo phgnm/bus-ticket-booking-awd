@@ -146,6 +146,34 @@ class TripRepository {
     async delete(id) {
         await pool.query('DELETE FROM trips WHERE id = $1', [id]);
     }
+
+    async findAllForAdmin({ limit, offset }) {
+        const query = `
+            SELECT t.id, t.departure_time, t.status, 
+                   r.price_base,
+                   lf.name as from_name, lt.name as to_name,
+                   b.license_plate, b.brand
+            FROM trips t
+            JOIN routes r ON t.route_id = r.id
+            JOIN locations lf ON r.route_from = lf.id
+            JOIN locations lt ON r.route_to = lt.id
+            JOIN buses b ON t.bus_id = b.id
+            ORDER BY t.departure_time DESC
+            LIMIT $1 OFFSET $2
+        `;
+        
+        const countQuery = `SELECT COUNT(*) as total FROM trips`;
+
+        const [dataResult, countResult] = await Promise.all([
+            pool.query(query, [limit, offset]),
+            pool.query(countQuery)
+        ]);
+
+        return {
+            trips: dataResult.rows,
+            total: parseInt(countResult.rows[0].total)
+        };
+    }
 }
 
 module.exports = new TripRepository();

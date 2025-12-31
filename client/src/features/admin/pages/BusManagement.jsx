@@ -84,7 +84,7 @@ export default function BusManagement() {
 
         return (
             <div className="mt-4 p-4 border rounded bg-slate-50 flex flex-col gap-2 items-center">
-                <p className="text-sm font-medium mb-2">Preview Sơ đồ ghế</p>
+                <p className="text-sm font-medium mb-2 py-2">Preview Sơ đồ ghế</p>
                 {Array.from({ length: rows }).map((_, r) => (
                     <div key={r} className="flex gap-2">
                         {Array.from({ length: cols }).map((_, c) => (
@@ -108,20 +108,20 @@ export default function BusManagement() {
                 <CardContent>
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
-                            <Label>Biển số xe</Label>
+                            <Label className="py-2">Biển số xe</Label>
                             <Input value={formData.license_plate} onChange={e => setFormData({...formData, license_plate: e.target.value})} required placeholder="Ví dụ: 51B-123.45" />
                         </div>
                         <div>
-                            <Label>Nhà xe / Thương hiệu</Label>
+                            <Label className="py-2">Nhà xe / Thương hiệu</Label>
                             <Input value={formData.brand} onChange={e => setFormData({...formData, brand: e.target.value})} required placeholder="Phương Trang" />
                         </div>
                         <div className="grid grid-cols-2 gap-2">
                             <div>
-                                <Label>Số ghế</Label>
+                                <Label className="py-2">Số ghế</Label>
                                 <Input type="number" value={formData.seat_capacity} onChange={e => setFormData({...formData, seat_capacity: e.target.value})} required />
                             </div>
                             <div>
-                                <Label>Loại xe</Label>
+                                <Label className="py-2">Loại xe</Label>
                                 <select className="flex h-9 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm"
                                     value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})}>
                                     <option value="Sleeper">Giường nằm</option>
@@ -136,15 +136,15 @@ export default function BusManagement() {
                             <Label className="text-indigo-600">Cấu hình Sơ đồ ghế</Label>
                             <div className="grid grid-cols-3 gap-2 mt-2">
                                 <div>
-                                    <Label className="text-xs">Số hàng</Label>
+                                    <Label className="text-xs py-2">Số hàng</Label>
                                     <Input type="number" value={formData.rows} onChange={e => setFormData({...formData, rows: e.target.value})} />
                                 </div>
                                 <div>
-                                    <Label className="text-xs">Số cột</Label>
+                                    <Label className="text-xs py-2">Số cột</Label>
                                     <Input type="number" value={formData.cols} onChange={e => setFormData({...formData, cols: e.target.value})} />
                                 </div>
                                 <div>
-                                    <Label className="text-xs">Vị trí lối đi</Label>
+                                    <Label className="text-xs py-2">Vị trí lối đi</Label>
                                     <Input type="number" value={formData.aisle} onChange={e => setFormData({...formData, aisle: e.target.value})} />
                                 </div>
                             </div>
@@ -152,7 +152,7 @@ export default function BusManagement() {
                         </div>
 
                         <div>
-                            <Label>Tiện ích (phân cách dấu phẩy)</Label>
+                            <Label className="py-2">Tiện ích (phân cách dấu phẩy)</Label>
                             <Input value={formData.amenities} onChange={e => setFormData({...formData, amenities: e.target.value})} placeholder="Wifi, TV, USB" />
                         </div>
                         
