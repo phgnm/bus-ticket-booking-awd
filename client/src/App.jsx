@@ -2,7 +2,6 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from '@/context/AuthContext';
 import { BookingProvider } from '@/context/BookingContext';
 
-import Navbar from '@/components/shared/Navbar';
 import HomePage from '@/features/home/pages/HomePage';
 import LoginPage from '@/features/auth/pages/LoginPage';
 import RegisterPage from '@/features/auth/pages/RegisterPage';
@@ -22,6 +21,8 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 
 // Admin Components
 import AdminLayout from '@/components/shared/AdminLayout';
+// User Layout
+import UserLayout from '@/components/shared/UserLayout';
 import AdminDashboard from '@/features/admin/pages/AdminDashboard';
 import BusManagement from '@/features/admin/pages/BusManagement';
 import RouteManagement from '@/features/admin/pages/RouteManagement';
@@ -36,35 +37,8 @@ function App() {
       <BookingProvider>
         <BrowserRouter>
           <Routes>
-            {/* === PUBLIC ROUTES (Có Navbar) === */}
-            <Route element={
-              <div className="min-h-screen bg-background text-foreground flex flex-col">
-                <Navbar />
-                <main className="flex-1">
-                  <Routes>
-                    <Route path="/" element={<HomePage />} />
-                    <Route path="/login" element={<LoginPage />} />
-                    <Route path="/register" element={<RegisterPage />} />
-                    <Route path="/verify-email" element={<VerifyEmailPage />} />
-                    <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-                    <Route path="/reset-password" element={<ResetPasswordPage />} />
-                    <Route path="/search" element={<TripSearchPage />} />
-
-                    {/* Booking Routes */}
-                    <Route path="/booking" element={<BookingPage />} />
-                    <Route path="/booking-success" element={<BookingSuccessPage />} />
-                    <Route path="/booking-failed" element={<BookingFailedPage />} /> {/* <--- ROUTE MỚI */}
-                    <Route path="/lookup-ticket" element={<LookupTicketPage />} />
-
-                    {/* Private Routes */}
-                    <Route element={<ProtectedRoute />}>
-                      <Route path="/profile/history" element={<TicketHistoryPage />} />
-                    </Route>
-                  </Routes>
-                </main>
-              </div>
-            }>
-              {/* Duplicate Routes for Nested Layout match */}
+            {/* === USER ROUTES (Có Navbar + Theme riêng) === */}
+            <Route element={<UserLayout />}>
               <Route path="/" element={<HomePage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
@@ -73,11 +47,16 @@ function App() {
               <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/search" element={<TripSearchPage />} />
 
+              {/* Booking Routes */}
               <Route path="/booking" element={<BookingPage />} />
               <Route path="/booking-success" element={<BookingSuccessPage />} />
-              <Route path="/booking-failed" element={<BookingFailedPage />} /> {/* <--- ROUTE MỚI */}
+              <Route path="/booking-failed" element={<BookingFailedPage />} />
               <Route path="/lookup-ticket" element={<LookupTicketPage />} />
-              <Route path="/profile/history" element={<TicketHistoryPage />} />
+
+              {/* Private User Routes */}
+              <Route element={<ProtectedRoute />}>
+                <Route path="/profile/history" element={<TicketHistoryPage />} />
+              </Route>
             </Route>
 
             {/* === ADMIN ROUTES === */}

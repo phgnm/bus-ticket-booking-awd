@@ -148,10 +148,10 @@ export default function BookingPage() {
         <div className="container mx-auto py-8 px-4 max-w-4xl">
             {/* Progress Bar */}
             <div className="flex justify-between mb-8 relative">
-                <div className="absolute top-1/2 left-0 w-full h-1 bg-gray-200 -z-10 -translate-y-1/2"></div>
+                <div className="absolute top-1/2 left-0 w-full h-1 bg-border -z-10 -translate-y-1/2"></div>
                 {STEPS.map((s) => (
-                    <div key={s.id} className={`flex flex-col items-center bg-background px-2 ${s.id <= currentStep ? 'text-indigo-600' : 'text-gray-400'}`}>
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 mb-2 ${s.id <= currentStep ? 'border-indigo-600 bg-indigo-50' : 'border-gray-300 bg-white'}`}>
+                    <div key={s.id} className={`flex flex-col items-center bg-background px-2 ${s.id <= currentStep ? 'text-primary' : 'text-muted-foreground'}`}>
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 mb-2 ${s.id <= currentStep ? 'border-primary bg-primary/10' : 'border-border bg-card'}`}>
                             {s.id < currentStep ? <CheckCircle size={16} /> : s.id}
                         </div>
                         <span className="text-xs font-medium">{s.title}</span>
@@ -201,18 +201,18 @@ export default function BookingPage() {
                         <Card>
                             <CardHeader><CardTitle>Xác nhận & Thanh toán</CardTitle></CardHeader>
                             <CardContent className="space-y-6">
-                                <div className="bg-slate-50 p-4 rounded-lg space-y-2 text-sm border border-slate-100">
+                                <div className="bg-muted/50 p-4 rounded-lg space-y-2 text-sm border">
                                     <div className="flex justify-between">
-                                        <span className="text-gray-500">Chuyến xe:</span>
+                                        <span className="text-muted-foreground">Chuyến xe:</span>
                                         <span className="font-medium">{trip.from_location_name} ➝ {trip.to_location_name}</span>
                                     </div>
                                     <div className="flex justify-between">
-                                        <span className="text-gray-500">Thời gian:</span>
+                                        <span className="text-muted-foreground">Thời gian:</span>
                                         <span className="font-medium">{new Date(trip.departure_time).toLocaleString('vi-VN')}</span>
                                     </div>
                                     <div className="flex justify-between">
-                                        <span className="text-gray-500">Ghế đã chọn:</span>
-                                        <span className="font-bold text-indigo-600">{bookingData.selectedSeats.join(', ')}</span>
+                                        <span className="text-muted-foreground">Ghế đã chọn:</span>
+                                        <span className="font-bold text-primary">{bookingData.selectedSeats.join(', ')}</span>
                                     </div>
                                 </div>
 
@@ -236,7 +236,7 @@ export default function BookingPage() {
                     <Card className="sticky top-4 shadow-md">
                         <CardHeader className="pb-2"><CardTitle className="text-lg">Chi tiết giá</CardTitle></CardHeader>
                         <CardContent>
-                            <div className="flex justify-between mb-4 text-sm text-gray-600">
+                            <div className="flex justify-between mb-4 text-sm text-muted-foreground">
                                 <span>{bookingData.selectedSeats.length} x Ghế</span>
                                 <span>{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(trip.price_base)}</span>
                             </div>

@@ -132,7 +132,7 @@ export default function TicketHistoryPage() {
             case 'PENDING': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
             case 'CANCELLED': return 'bg-red-100 text-red-700 border-red-200';
             case 'REFUNDED': return 'bg-purple-100 text-purple-700 border-purple-200';
-            default: return 'bg-gray-100 text-gray-700 border-gray-200';
+            default: return 'bg-muted text-muted-foreground border-border';
         }
     };
 
@@ -172,16 +172,16 @@ export default function TicketHistoryPage() {
     return (
         <div className="container mx-auto py-8 px-4 max-w-5xl">
             <div className="flex items-center justify-between mb-8">
-                <h1 className="text-2xl font-bold flex items-center gap-2 text-slate-800">
-                    <Ticket className="w-6 h-6 text-indigo-600" /> Lịch sử đặt vé của tôi
+                <h1 className="text-2xl font-bold flex items-center gap-2 text-foreground">
+                    <Ticket className="w-6 h-6 text-primary" /> Lịch sử đặt vé của tôi
                 </h1>
-                <div className="text-sm text-slate-500">
-                    Tổng cộng: <span className="font-bold text-indigo-600">{bookings.length}</span> vé
+                <div className="text-sm text-muted-foreground">
+                    Tổng cộng: <span className="font-bold text-primary">{bookings.length}</span> vé
                 </div>
             </div>
 
             {bookings.length === 0 ? (
-                <div className="text-center py-16 bg-white rounded-xl border border-dashed border-slate-300">
+                <div className="text-center py-16 bg-card rounded-xl border border-dashed">
                     <div className="inline-flex p-4 rounded-full bg-slate-50 mb-4">
                         <Ticket className="w-8 h-8 text-slate-300" />
                     </div>
@@ -225,7 +225,7 @@ export default function TicketHistoryPage() {
 
                                             <div className="flex items-start gap-3">
                                                 <div className="flex flex-col items-center gap-0.5 mt-1">
-                                                    <div className="w-2.5 h-2.5 rounded-full bg-white border-2 border-indigo-500"></div>
+                                                    <div className="w-2.5 h-2.5 rounded-full bg-background border-2 border-primary"></div>
                                                     <div className="h-10 w-0.5 bg-slate-200 border-l border-dashed border-slate-300"></div>
                                                     <div className="w-2.5 h-2.5 rounded-full bg-indigo-500"></div>
                                                 </div>

@@ -20,7 +20,7 @@ export default function BookingFailedPage() {
                     </CardDescription>
                 </CardHeader>
 
-                <CardContent className="text-center text-gray-600 space-y-4">
+                <CardContent className="text-center text-muted-foreground space-y-4">
                     <p>
                         Bạn chưa bị trừ tiền cho giao dịch này (hoặc sẽ được hoàn tiền nếu có lỗi hệ thống).
                     </p>
@@ -38,7 +38,7 @@ export default function BookingFailedPage() {
                     </Button>
                     <Button
                         variant="ghost"
-                        className="w-full text-gray-600 hover:text-gray-900"
+                        className="w-full text-muted-foreground hover:text-foreground"
                         onClick={() => navigate('/')}
                     >
                         <Home className="w-4 h-4 mr-2" /> Về trang chủ

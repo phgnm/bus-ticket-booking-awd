@@ -30,7 +30,7 @@ const REVIEW_STATUS = {
 const STATUS_COLORS = {
     [REVIEW_STATUS.PENDING]: 'bg-yellow-100 text-yellow-800 border-yellow-200',
     [REVIEW_STATUS.APPROVED]: 'bg-green-100 text-green-800 border-green-200',
-    [REVIEW_STATUS.HIDDEN]: 'bg-gray-100 text-gray-800 border-gray-200',
+    [REVIEW_STATUS.HIDDEN]: 'bg-muted text-muted-foreground border-border',
 };
 
 export default function ReviewManagement() {
@@ -139,14 +139,14 @@ export default function ReviewManagement() {
         return (
             <div className="flex text-yellow-400">
                 {[...Array(5)].map((_, i) => (
-                    <Star key={i} size={14} fill={i < rating ? "currentColor" : "none"} className={i < rating ? "" : "text-gray-300"} />
+                    <Star key={i} size={14} fill={i < rating ? "currentColor" : "none"} className={i < rating ? "" : "text-muted-foreground"} />
                 ))}
             </div>
         );
     };
 
     return (
-        <div className="space-y-6 p-6 bg-slate-50/50 min-h-screen">
+        <div className="space-y-6 p-6 bg-background min-h-screen">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
@@ -174,7 +174,7 @@ export default function ReviewManagement() {
                             />
                         </div>
 
-                       
+
 
                         <select
                             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
@@ -215,7 +215,7 @@ export default function ReviewManagement() {
             <Card className="overflow-hidden border shadow-sm">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left">
-                        <thead className="bg-slate-100 text-slate-600 font-medium border-b sticky top-0 z-10">
+                        <thead className="bg-muted/50 text-muted-foreground font-medium border-b sticky top-0 z-10">
                             <tr>
                                 <th className="px-4 py-3 w-[80px]">Mã Vé</th>
                                 <th className="px-4 py-3 min-w-[150px]">Chuyến đi</th>
@@ -230,18 +230,18 @@ export default function ReviewManagement() {
                                 // Skeleton Loading
                                 [...Array(5)].map((_, i) => (
                                     <tr key={i} className="animate-pulse">
-                                        <td className="px-4 py-3"><div className="h-4 bg-slate-200 rounded w-12"></div></td>
-                                        <td className="px-4 py-3"><div className="h-4 bg-slate-200 rounded w-24"></div></td>
-                                        <td className="px-4 py-3"><div className="h-4 bg-slate-200 rounded w-16"></div></td>
-                                        <td className="px-4 py-3"><div className="h-4 bg-slate-200 rounded w-full"></div></td>
-                                        <td className="px-4 py-3"><div className="h-4 bg-slate-200 rounded w-20"></div></td>
-                                        <td className="px-4 py-3"><div className="h-4 bg-slate-200 rounded w-24"></div></td>
+                                        <td className="px-4 py-3"><div className="h-4 bg-muted rounded w-12"></div></td>
+                                        <td className="px-4 py-3"><div className="h-4 bg-muted rounded w-24"></div></td>
+                                        <td className="px-4 py-3"><div className="h-4 bg-muted rounded w-16"></div></td>
+                                        <td className="px-4 py-3"><div className="h-4 bg-muted rounded w-full"></div></td>
+                                        <td className="px-4 py-3"><div className="h-4 bg-muted rounded w-20"></div></td>
+                                        <td className="px-4 py-3"><div className="h-4 bg-muted rounded w-24"></div></td>
                                         <td className="px-4 py-3"></td>
                                     </tr>
                                 ))
                             ) : reviews.length === 0 ? (
                                 <tr>
-                                    <td colSpan="7" className="px-4 py-12 text-center text-slate-500">
+                                    <td colSpan="7" className="px-4 py-12 text-center text-muted-foreground">
                                         <div className="flex flex-col items-center justify-center">
                                             <Search className="h-8 w-8 text-slate-300 mb-2" />
                                             <p>Không tìm thấy đánh giá nào phù hợp.</p>
@@ -252,12 +252,12 @@ export default function ReviewManagement() {
                                 reviews.map((review) => (
                                     <tr
                                         key={review.review_id}
-                                        className={`hover:bg-slate-50 transition-colors ${review.rating <= 2 ? 'bg-red-50/50 hover:bg-red-50' : ''}`}
+                                        className={`hover:bg-accent/50 transition-colors ${review.rating <= 2 ? 'bg-red-50/50 hover:bg-red-50 dark:bg-red-950/20 dark:hover:bg-red-950/30' : ''}`}
                                     >
-                                        <td className="px-4 py-3 font-mono text-xs text-slate-500">#{review.booking_id}</td>
+                                        <td className="px-4 py-3 font-mono text-xs text-muted-foreground">#{review.booking_id}</td>
                                         <td className="px-4 py-3">
-                                            <div className="font-medium text-slate-900">{review.route_name || 'SG - ĐL'}</div>
-                                            <div className="text-xs text-slate-500">{review.bus_plate}</div>
+                                            <div className="font-medium text-foreground">{review.route_name || 'SG - ĐL'}</div>
+                                            <div className="text-xs text-muted-foreground">{review.bus_plate}</div>
                                         </td>
                                         <td className="px-4 py-3">
                                             {renderStars(review.rating)}
@@ -267,8 +267,8 @@ export default function ReviewManagement() {
                                                 {review.comment}
                                             </div>
                                         </td>
-                                        
-                                        <td className="px-4 py-3 text-slate-500">
+
+                                        <td className="px-4 py-3 text-muted-foreground">
                                             {review.created_at ? format(new Date(review.created_at), 'dd/MM/yyyy HH:mm', { locale: vi }) : '-'}
                                         </td>
                                         <td className="px-4 py-3 text-right">
@@ -300,8 +300,8 @@ export default function ReviewManagement() {
 
                 {/* Pagination */}
                 {!loading && reviews.length > 0 && (
-                    <div className="bg-slate-50 px-4 py-3 border-t flex items-center justify-between">
-                        <span className="text-sm text-slate-500">
+                    <div className="bg-muted/30 px-4 py-3 border-t flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">
                             Trang {pagination.page} / {pagination.totalPages}
                         </span>
                         <div className="flex gap-2">
@@ -349,7 +349,7 @@ export default function ReviewManagement() {
                                     {renderStars(selectedReview.rating)}
                                     <span className="text-slate-500 text-sm">({selectedReview.rating}/5)</span>
                                 </div>
-                                <div className="p-4 border rounded-lg bg-white text-slate-700 italic relative">
+                                <div className="p-4 border rounded-lg bg-card text-foreground italic relative">
                                     <span className="absolute top-2 left-2 text-4xl text-slate-200 font-serif">"</span>
                                     <p className="relative z-10 px-2">{selectedReview.comment}</p>
                                 </div>

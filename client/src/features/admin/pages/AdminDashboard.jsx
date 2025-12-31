@@ -82,12 +82,12 @@ export default function AdminDashboard() {
         >
             <Card className="overflow-hidden border-none shadow-md hover:shadow-lg transition-shadow">
                 <div className={`p-4 flex items-center justify-between ${colorClass} text-white`}>
-                    <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                    <div className="p-2 bg-primary/10 rounded-lg backdrop-blur-sm">
                         <Icon className="h-6 w-6 text-white" />
                     </div>
                     {SubIcon && <SubIcon className="h-4 w-4 text-white/70" />}
                 </div>
-                <div className="bg-white p-4">
+                <div className="bg-card p-4">
                     <p className="text-sm font-medium text-slate-500 uppercase tracking-wide">{title}</p>
                     <h3 className="text-2xl font-bold mt-1 text-slate-800">{value}</h3>
                     {subText && (
@@ -108,7 +108,7 @@ export default function AdminDashboard() {
                     <h1 className="text-3xl font-bold tracking-tight text-slate-900">Dashboard Quản Trị</h1>
                     <p className="text-slate-500 mt-1">Tổng quan tình hình kinh doanh và vận hành.</p>
                 </div>
-                <div className="text-xs font-medium bg-white px-3 py-1.5 rounded-md border shadow-sm text-slate-500">
+                <div className="text-xs font-medium bg-card px-3 py-1.5 rounded-md border shadow-sm text-muted-foreground">
                     Dữ liệu 30 ngày gần nhất
                 </div>
             </div>
@@ -234,7 +234,7 @@ export default function AdminDashboard() {
                                                 <span className="font-medium text-slate-800 text-sm">{route.route_name}</span>
                                                 <span className="text-xs text-slate-500 mt-1">{route.ticket_count} vé đã bán</span>
                                             </div>
-                                            <Badge variant="outline" className="bg-white text-emerald-600 border-emerald-200">
+                                            <Badge variant="outline" className="bg-card text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800">
                                                 {formatCurrency(route.revenue)}
                                             </Badge>
                                         </div>

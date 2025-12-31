@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
+import { ModeToggle } from "@/components/mode-toggle"
 import { Bus, LogOut, User, LayoutDashboard, Search, History } from 'lucide-react'; // [NEW] Thêm icon History
 import {
     DropdownMenu,
@@ -18,17 +19,18 @@ export default function Navbar() {
     const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
 
     return (
-        <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-md supports-[backdrop-filter]:bg-white/60">
+        <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60">
             <div className="w-full flex h-16 items-center justify-between px-6">
-                <Link to="/" className="flex items-center gap-2 text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
-                    <Bus className="h-6 w-6 text-indigo-600" />
+                <Link to="/" className="flex items-center gap-2 text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">
+                    <Bus className="h-6 w-6 text-primary" />
                     VexereClone
                 </Link>
 
                 <nav className="flex items-center gap-4">
+                    <ModeToggle />
                     {/* Nút Tra cứu vé (Guest) */}
                     <Link to="/lookup-ticket">
-                        <Button variant="ghost" className="flex items-center gap-2 text-slate-600 hover:text-indigo-600 font-medium hidden md:flex">
+                        <Button variant="ghost" className="flex items-center gap-2 text-muted-foreground hover:text-primary font-medium hidden md:flex">
                             <Search className="w-4 h-4" />
                             Tra cứu vé
                         </Button>
@@ -38,7 +40,7 @@ export default function Navbar() {
                         <div className="flex items-center gap-3">
                             {/* [NEW] Nút Lịch sử vé (User) */}
                             <Link to="/profile/history">
-                                <Button variant="ghost" className="flex items-center gap-2 text-slate-600 hover:text-indigo-600 font-medium hidden md:flex">
+                                <Button variant="ghost" className="flex items-center gap-2 text-muted-foreground hover:text-primary font-medium hidden md:flex">
                                     <History className="w-4 h-4" />
                                     Lịch sử vé
                                 </Button>
@@ -53,12 +55,12 @@ export default function Navbar() {
                                 </Link>
                             )}
 
-                            <div className="flex items-center gap-2 pl-4 border-l border-slate-200">
+                            <div className="flex items-center gap-2 pl-4 border-l border-border">
                                 <div className="flex flex-col items-end">
-                                    <span className="text-sm font-semibold text-slate-800 leading-none">
+                                    <span className="text-sm font-semibold text-foreground leading-none">
                                         {user.full_name || 'User'}
                                     </span>
-                                    <span className="text-[10px] text-slate-500 font-medium uppercase">
+                                    <span className="text-[10px] text-muted-foreground font-medium uppercase">
                                         {user.role}
                                     </span>
                                 </div>
@@ -67,7 +69,7 @@ export default function Navbar() {
                                     variant="ghost"
                                     size="icon"
                                     onClick={logout}
-                                    className="text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-full"
+                                    className="text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950 rounded-full"
                                     title="Đăng xuất"
                                 >
                                     <LogOut className="h-5 w-5" />
@@ -78,12 +80,12 @@ export default function Navbar() {
                         !isAuthPage && (
                             <div className="flex gap-2">
                                 <Link to="/login">
-                                    <Button variant="ghost" className="hover:bg-indigo-50 hover:text-indigo-600">
+                                    <Button variant="ghost" className="hover:bg-primary/10 hover:text-primary">
                                         Đăng nhập
                                     </Button>
                                 </Link>
                                 <Link to="/register">
-                                    <Button className="bg-indigo-600 hover:bg-indigo-700 shadow-md hover:shadow-lg transition-all">
+                                    <Button className="bg-primary hover:bg-primary/90 shadow-md hover:shadow-lg transition-all">
                                         Đăng ký ngay
                                     </Button>
                                 </Link>

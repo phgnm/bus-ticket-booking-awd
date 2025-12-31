@@ -206,29 +206,29 @@ export default function TripManagement() {
                 <CardContent>
                     <div className="space-y-3">
                         {trips.length === 0 ? (
-                            <p className="text-center text-gray-500 py-4">Chưa có chuyến đi nào.</p>
+                            <p className="text-center text-muted-foreground py-4">Chưa có chuyến đi nào.</p>
                         ) : (
                             trips.map(trip => (
-                                <div key={trip.id} className="flex items-center justify-between p-4 border rounded-lg bg-white shadow-sm hover:bg-slate-50 transition-colors">
+                                <div key={trip.id} className="flex items-center justify-between p-4 border rounded-lg bg-card shadow-sm hover:bg-accent/50 transition-colors">
                                     <div className="flex flex-col gap-1">
-                                        <div className="flex items-center gap-2 font-semibold text-lg text-slate-800">
+                                        <div className="flex items-center gap-2 font-semibold text-lg text-foreground">
                                             <span>{trip.from_name}</span>
-                                            <span className="text-slate-400 text-sm">➝</span>
+                                            <span className="text-muted-foreground text-sm">➝</span>
                                             <span>{trip.to_name}</span>
                                         </div>
-                                        <div className="text-sm text-indigo-600 font-medium flex items-center gap-2">
+                                        <div className="text-sm text-primary font-medium flex items-center gap-2">
                                             <CalendarClock className="w-4 h-4" />
                                             {formatDateTime(trip.departure_time)}
                                         </div>
-                                        <div className="flex items-center gap-3 text-xs text-slate-500 mt-1">
+                                        <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
                                             <Badge variant="outline" className="flex items-center gap-1">
                                                 <Bus className="w-3 h-3" /> {trip.license_plate}
                                             </Badge>
                                             <Badge variant="secondary">
                                                 {parseInt(trip.price_base).toLocaleString()}đ
                                             </Badge>
-                                            <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold border ${trip.status === 'SCHEDULED' ? 'bg-green-50 text-green-600 border-green-200' :
-                                                    'bg-gray-50 text-gray-600 border-gray-200'
+                                            <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold border ${trip.status === 'SCHEDULED' ? 'bg-green-50 text-green-600 border-green-200 dark:bg-green-950 dark:text-green-400 dark:border-green-800' :
+                                                'bg-muted text-muted-foreground border-border'
                                                 }`}>
                                                 {trip.status}
                                             </span>

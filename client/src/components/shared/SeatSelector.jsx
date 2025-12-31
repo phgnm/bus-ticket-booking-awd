@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import { Loader2, Armchair } from 'lucide-react';
 
 const SEAT_COLORS = {
-    AVAILABLE: "bg-white border-gray-300 hover:border-indigo-500 text-gray-700 cursor-pointer",
+    AVAILABLE: "bg-card border-border hover:border-primary text-foreground cursor-pointer",
     BOOKED: "bg-red-100 border-red-200 text-red-400 cursor-not-allowed",
     LOCKED_BY_OTHERS: "bg-orange-100 border-orange-200 text-orange-400 cursor-not-allowed",
     SELECTED: "bg-indigo-600 border-indigo-600 text-white hover:bg-indigo-700 cursor-pointer",
@@ -143,19 +143,19 @@ export default function SeatSelector({ tripId, seatLayout, onSelectionChange, in
     }
 
     return (
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 max-w-2xl mx-auto">
+        <div className="bg-card p-6 rounded-xl shadow-sm border max-w-2xl mx-auto">
             <h3 className="text-lg font-bold mb-4 text-center">Sơ đồ ghế</h3>
-            <div className="flex flex-wrap justify-center gap-4 mb-6 text-sm text-slate-600">
-                <div className="flex items-center gap-2"><div className="w-4 h-4 rounded border border-gray-300 bg-white"></div> Trống</div>
+            <div className="flex flex-wrap justify-center gap-4 mb-6 text-sm text-muted-foreground">
+                <div className="flex items-center gap-2"><div className="w-4 h-4 rounded border border-border bg-card"></div> Trống</div>
                 <div className="flex items-center gap-2"><div className="w-4 h-4 rounded border border-indigo-600 bg-indigo-600"></div> Đang chọn</div>
                 <div className="flex items-center gap-2"><div className="w-4 h-4 rounded border border-red-200 bg-red-100"></div> Đã bán</div>
                 <div className="flex items-center gap-2"><div className="w-4 h-4 rounded border border-orange-200 bg-orange-100"></div> Người khác giữ</div>
             </div>
             <div className="mb-6 overflow-x-auto">
                 <div className="min-w-max mx-auto space-y-2">
-                    <div className="flex justify-center mb-4 text-slate-300">
-                        <div className="w-full h-1 bg-slate-100 rounded-full mx-10 relative">
-                            <span className="absolute -top-2 left-1/2 -translate-x-1/2 text-xs bg-white px-2">Tài xế</span>
+                    <div className="flex justify-center mb-4 text-muted-foreground">
+                        <div className="w-full h-1 bg-border rounded-full mx-10 relative">
+                            <span className="absolute -top-2 left-1/2 -translate-x-1/2 text-xs bg-background px-2">Tài xế</span>
                         </div>
                     </div>
                     {renderSeatGrid()}

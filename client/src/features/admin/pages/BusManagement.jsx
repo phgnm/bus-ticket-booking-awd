@@ -9,7 +9,7 @@ import { Loader2, Plus, Trash2, Armchair } from 'lucide-react';
 export default function BusManagement() {
     const [buses, setBuses] = useState([]);
     const [loading, setLoading] = useState(false);
-    
+
     // Form State
     const [formData, setFormData] = useState({
         license_plate: '',
@@ -26,7 +26,7 @@ export default function BusManagement() {
     const fetchBuses = async () => {
         try {
             const res = await api.get('/admin/buses');
-            if(res.data.success) setBuses(res.data.data);
+            if (res.data.success) setBuses(res.data.data);
         } catch (error) {
             console.error("Error fetching buses", error);
         }
@@ -57,7 +57,7 @@ export default function BusManagement() {
 
             await api.post('/admin/buses', payload);
             alert("Tạo xe thành công!");
-            setFormData({...formData, license_plate: '', brand: ''}); // Reset cơ bản
+            setFormData({ ...formData, license_plate: '', brand: '' }); // Reset cơ bản
             fetchBuses();
         } catch (err) {
             alert(err.response?.data?.msg || "Lỗi khi tạo xe");
@@ -67,7 +67,7 @@ export default function BusManagement() {
     };
 
     const handleDelete = async (id) => {
-        if(!confirm("Bạn có chắc chắn muốn xóa?")) return;
+        if (!confirm("Bạn có chắc chắn muốn xóa?")) return;
         try {
             await api.delete(`/admin/buses/${id}`);
             fetchBuses();
@@ -109,43 +109,43 @@ export default function BusManagement() {
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
                             <Label className="py-2">Biển số xe</Label>
-                            <Input value={formData.license_plate} onChange={e => setFormData({...formData, license_plate: e.target.value})} required placeholder="Ví dụ: 51B-123.45" />
+                            <Input value={formData.license_plate} onChange={e => setFormData({ ...formData, license_plate: e.target.value })} required placeholder="Ví dụ: 51B-123.45" />
                         </div>
                         <div>
                             <Label className="py-2">Nhà xe / Thương hiệu</Label>
-                            <Input value={formData.brand} onChange={e => setFormData({...formData, brand: e.target.value})} required placeholder="Phương Trang" />
+                            <Input value={formData.brand} onChange={e => setFormData({ ...formData, brand: e.target.value })} required placeholder="Phương Trang" />
                         </div>
                         <div className="grid grid-cols-2 gap-2">
                             <div>
                                 <Label className="py-2">Số ghế</Label>
-                                <Input type="number" value={formData.seat_capacity} onChange={e => setFormData({...formData, seat_capacity: e.target.value})} required />
+                                <Input type="number" value={formData.seat_capacity} onChange={e => setFormData({ ...formData, seat_capacity: e.target.value })} required />
                             </div>
                             <div>
                                 <Label className="py-2">Loại xe</Label>
                                 <select className="flex h-9 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm"
-                                    value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})}>
+                                    value={formData.type} onChange={e => setFormData({ ...formData, type: e.target.value })}>
                                     <option value="Sleeper">Giường nằm</option>
                                     <option value="Seater">Ghế ngồi</option>
                                     <option value="Limousine">Limousine</option>
                                 </select>
                             </div>
                         </div>
-                        
+
                         {/* Seat Map Configuration Tool */}
                         <div className="border-t pt-4">
                             <Label className="text-indigo-600">Cấu hình Sơ đồ ghế</Label>
                             <div className="grid grid-cols-3 gap-2 mt-2">
                                 <div>
                                     <Label className="text-xs py-2">Số hàng</Label>
-                                    <Input type="number" value={formData.rows} onChange={e => setFormData({...formData, rows: e.target.value})} />
+                                    <Input type="number" value={formData.rows} onChange={e => setFormData({ ...formData, rows: e.target.value })} />
                                 </div>
                                 <div>
                                     <Label className="text-xs py-2">Số cột</Label>
-                                    <Input type="number" value={formData.cols} onChange={e => setFormData({...formData, cols: e.target.value})} />
+                                    <Input type="number" value={formData.cols} onChange={e => setFormData({ ...formData, cols: e.target.value })} />
                                 </div>
                                 <div>
                                     <Label className="text-xs py-2">Vị trí lối đi</Label>
-                                    <Input type="number" value={formData.aisle} onChange={e => setFormData({...formData, aisle: e.target.value})} />
+                                    <Input type="number" value={formData.aisle} onChange={e => setFormData({ ...formData, aisle: e.target.value })} />
                                 </div>
                             </div>
                             {renderSeatMapPreview()}
@@ -153,11 +153,11 @@ export default function BusManagement() {
 
                         <div>
                             <Label className="py-2">Tiện ích (phân cách dấu phẩy)</Label>
-                            <Input value={formData.amenities} onChange={e => setFormData({...formData, amenities: e.target.value})} placeholder="Wifi, TV, USB" />
+                            <Input value={formData.amenities} onChange={e => setFormData({ ...formData, amenities: e.target.value })} placeholder="Wifi, TV, USB" />
                         </div>
-                        
+
                         <Button type="submit" className="w-full" disabled={loading}>
-                            {loading ? <Loader2 className="animate-spin" /> : <><Plus className="w-4 h-4 mr-2"/> Thêm Xe</>}
+                            {loading ? <Loader2 className="animate-spin" /> : <><Plus className="w-4 h-4 mr-2" /> Thêm Xe</>}
                         </Button>
                     </form>
                 </CardContent>
@@ -169,7 +169,7 @@ export default function BusManagement() {
                 <CardContent>
                     <div className="space-y-4">
                         {buses.map(bus => (
-                            <div key={bus.id} className="flex items-center justify-between p-4 border rounded-lg bg-white shadow-sm">
+                            <div key={bus.id} className="flex items-center justify-between p-4 border rounded-lg bg-card shadow-sm">
                                 <div className="flex items-center gap-4">
                                     <div className="p-3 bg-slate-100 rounded-full">
                                         <Armchair className="h-6 w-6 text-slate-600" />

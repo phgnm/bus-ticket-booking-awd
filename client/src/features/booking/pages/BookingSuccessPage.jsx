@@ -71,7 +71,7 @@ export default function BookingSuccessPage() {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4 space-y-4">
                 <Loader2 className="w-12 h-12 text-indigo-600 animate-spin" />
-                <p className="text-gray-600 font-medium">Đang kiểm tra kết quả...</p>
+                <p className="text-muted-foreground font-medium">Đang kiểm tra kết quả...</p>
             </div>
         );
     }
@@ -106,8 +106,8 @@ export default function BookingSuccessPage() {
                 </CardHeader>
 
                 <CardContent className="space-y-6">
-                    <div className="bg-white p-6 rounded-lg border border-dashed border-gray-300 text-center">
-                        <p className="text-sm text-gray-500 mb-1 uppercase tracking-wide">Mã vé của bạn</p>
+                    <div className="bg-card p-6 rounded-lg border border-dashed text-center">
+                        <p className="text-sm text-muted-foreground mb-1 uppercase tracking-wide">Mã vé của bạn</p>
                         <p className="text-3xl font-extrabold text-indigo-600 tracking-wider">
                             {bookingCode}
                         </p>
@@ -123,7 +123,7 @@ export default function BookingSuccessPage() {
                         </div>
                     </div>
 
-                    
+
                 </CardContent>
 
                 <CardFooter className="flex flex-col gap-3 w-full">
@@ -135,7 +135,7 @@ export default function BookingSuccessPage() {
                     </Button>
                     <Button
                         variant="outline"
-                        className="w-full border-gray-300 hover:bg-gray-100 h-11"
+                        className="w-full border-border hover:bg-accent h-11"
                         onClick={() => navigate('/')}
                     >
                         <Home className="w-4 h-4 mr-2" /> Về trang chủ
