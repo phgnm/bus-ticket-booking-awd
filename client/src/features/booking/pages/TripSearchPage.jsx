@@ -8,31 +8,72 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Input } from '@/components/ui/input'; // Mới thêm
 
 // Icons
-import { MapPin, Filter, ArrowRight, Bus, Wifi, Tv, Armchair } from 'lucide-react';
+import { MapPin, Filter, ArrowRight, Bus, Wifi, Tv, Armchair, Calendar, Search } from 'lucide-react'; // Mới thêm Calendar, Search
 
 // Custom Components
-import SeatSelector from '@/components/shared/SeatSelector'; // Đảm bảo bạn đã tạo file này
+import SeatSelector from '@/components/shared/SeatSelector';
 
 export default function TripSearchPage() {
     const [searchParams, setSearchParams] = useSearchParams();
+    const navigate = useNavigate(); // Dùng để navigate nếu cần, hoặc dùng setSearchParams
+
+    // --- 1. STATE CHO TÌM KIẾM (MỚI) ---
+    const [locations, setLocations] = useState([]);
+    const [searchCriteria, setSearchCriteria] = useState({
+        from: searchParams.get('from') || '',
+        to: searchParams.get('to') || '',
+        date: searchParams.get('date') || ''
+    });
+
+    // --- STATE CŨ ---
     const [trips, setTrips] = useState([]);
     const [loading, setLoading] = useState(true);
-
-    // Filters State
     const [filters, setFilters] = useState({
-        bus_type: '',
-        sort_by: 'time',
-        order: 'asc'
+        bus_type: searchParams.get('bus_type') || '', // Đồng bộ filter với URL nếu có
+        sort_by: searchParams.get('sort_by') || 'time',
+        order: searchParams.get('order') || 'asc'
     });
+
+    // --- 2. EFFECT: LẤY LOCATIONS & SYNC URL (MỚI) ---
+    useEffect(() => {
+        // Lấy danh sách địa điểm để hiển thị trong select box
+        api.get('/locations').then(res => {
+            if (res.data.success) setLocations(res.data.data);
+        });
+    }, []);
+
+    // Khi URL thay đổi (người dùng back/forward), cập nhật lại form tìm kiếm
+    useEffect(() => {
+        setSearchCriteria({
+            from: searchParams.get('from') || '',
+            to: searchParams.get('to') || '',
+            date: searchParams.get('date') || ''
+        });
+    }, [searchParams]);
+
+    // --- HÀM XỬ LÝ TÌM KIẾM LẠI (MỚI) ---
+    const handleReSearch = (e) => {
+        e.preventDefault();
+        // Cập nhật lại URL params
+        const newParams = new URLSearchParams(searchParams);
+        newParams.set('from', searchCriteria.from);
+        newParams.set('to', searchCriteria.to);
+        newParams.set('date', searchCriteria.date);
+
+        // Reset filter cơ bản khi tìm search mới (tuỳ chọn, ở đây giữ lại sort nếu muốn)
+        setSearchParams(newParams);
+    };
 
     const fetchTrips = async () => {
         setLoading(true);
         try {
+            // Logic cũ: lấy query từ URL
             const query = new URLSearchParams(searchParams);
 
-            // Append local filters to query
+            // Đảm bảo các filter local được áp dụng
             if (filters.bus_type) query.set('bus_type', filters.bus_type);
             if (filters.sort_by) query.set('sort_by', filters.sort_by);
             query.set('order', filters.order);
@@ -43,6 +84,7 @@ export default function TripSearchPage() {
             }
         } catch (error) {
             console.error("Lỗi khi tải danh sách chuyến đi:", error);
+            setTrips([]);
         } finally {
             setLoading(false);
         }
@@ -62,6 +104,61 @@ export default function TripSearchPage() {
 
     return (
         <div className="container mx-auto px-4 py-8 bg-slate-50 min-h-screen">
+
+            {/* --- MỚI: THANH TÌM KIẾM --- */}
+            <Card className="mb-8 border-none shadow-md bg-white">
+                <CardContent className="p-6">
+                    <form onSubmit={handleReSearch} className="grid grid-cols-1 md:grid-cols-7 gap-4 items-end">
+                        {/* Nơi đi */}
+                        <div className="md:col-span-2 space-y-2">
+                            <Label className="flex items-center gap-2 text-slate-600"><MapPin className="w-4 h-4 text-indigo-500" /> Nơi xuất phát</Label>
+                            <select
+                                className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                                value={searchCriteria.from}
+                                onChange={e => setSearchCriteria({ ...searchCriteria, from: e.target.value })}
+                                required
+                            >
+                                <option value="">Chọn điểm đi</option>
+                                {locations.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
+                            </select>
+                        </div>
+
+                        {/* Nơi đến */}
+                        <div className="md:col-span-2 space-y-2">
+                            <Label className="flex items-center gap-2 text-slate-600"><MapPin className="w-4 h-4 text-red-500" /> Nơi đến</Label>
+                            <select
+                                className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                                value={searchCriteria.to}
+                                onChange={e => setSearchCriteria({ ...searchCriteria, to: e.target.value })}
+                                required
+                            >
+                                <option value="">Chọn điểm đến</option>
+                                {locations.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
+                            </select>
+                        </div>
+
+                        {/* Ngày đi */}
+                        <div className="md:col-span-2 space-y-2">
+                            <Label className="flex items-center gap-2 text-slate-600"><Calendar className="w-4 h-4 text-green-500" /> Ngày đi</Label>
+                            <Input
+                                type="date"
+                                value={searchCriteria.date}
+                                onChange={e => setSearchCriteria({ ...searchCriteria, date: e.target.value })}
+                                required
+                                className="block w-full"
+                            />
+                        </div>
+
+                        {/* Nút tìm kiếm */}
+                        <div className="md:col-span-1">
+                            <Button type="submit" className="w-full bg-blue-400 hover:bg-blue-600 text-black font-semibold h-10">
+                                <Search className="w-4 h-4 mr-2" /> Tìm
+                            </Button>
+                        </div>
+                    </form>
+                </CardContent>
+            </Card>
+
             <div className="flex flex-col md:flex-row gap-6">
 
                 {/* --- SIDEBAR: BỘ LỌC --- */}
@@ -135,6 +232,7 @@ export default function TripSearchPage() {
                         <div className="text-center py-10 bg-white rounded-lg border border-dashed">
                             <Bus className="w-12 h-12 mx-auto text-gray-300 mb-2" />
                             <p className="text-gray-500">Không tìm thấy chuyến xe nào phù hợp.</p>
+                            <p className="text-sm text-gray-400 mt-2">Hãy thử thay đổi ngày hoặc địa điểm tìm kiếm ở trên.</p>
                         </div>
                     ) : (
                         <div className="space-y-6">
@@ -156,22 +254,21 @@ export default function TripSearchPage() {
 }
 
 // --- SUB-COMPONENT: TripCard ---
+
 function TripCard({ trip, formatCurrency, formatTime, getDuration }) {
-    const [expandedInfo, setExpandedInfo] = useState(false); // Trạng thái xem chi tiết tiện ích
-    const [showSeatSelection, setShowSeatSelection] = useState(false); // Trạng thái mở chọn ghế
-    const [selectedSeats, setSelectedSeats] = useState([]); // Ghế đang chọn
+    const [expandedInfo, setExpandedInfo] = useState(false);
+    const [showSeatSelection, setShowSeatSelection] = useState(false);
+    const [selectedSeats, setSelectedSeats] = useState([]);
 
     const navigate = useNavigate();
 
-    // Parse layout từ JSON string (nếu có) hoặc dùng layout mặc định
     const seatLayout = trip.seat_layout
         ? (typeof trip.seat_layout === 'string' ? JSON.parse(trip.seat_layout) : trip.seat_layout)
-        : { rows: 6, cols: 4, aisle: 2 }; // Default layout fallback
+        : { rows: 6, cols: 4, aisle: 2 };
 
     const handleBooking = () => {
         if (selectedSeats.length === 0) return;
 
-        // Chuyển hướng sang trang thanh toán kèm thông tin vé
         navigate('/booking', {
             state: {
                 trip,
@@ -184,7 +281,6 @@ function TripCard({ trip, formatCurrency, formatTime, getDuration }) {
     return (
         <Card className={cn("transition-all border-l-4", showSeatSelection ? "border-l-green-500 shadow-lg ring-1 ring-green-500" : "border-l-indigo-500 hover:shadow-md")}>
             <CardContent className="p-6">
-                {/* 1. Thông tin cơ bản chuyến đi */}
                 <div className="flex flex-col md:flex-row justify-between gap-4">
                     {/* Left Info */}
                     <div className="flex-1 space-y-3">
@@ -195,7 +291,6 @@ function TripCard({ trip, formatCurrency, formatTime, getDuration }) {
                                 {getDuration(trip.estimated_duration)}
                                 <span className="border-b border-dotted border-slate-400 w-8"></span>
                             </div>
-                            {/* Thời gian đến dự kiến (tính toán đơn giản) */}
                             <span className="text-slate-600 font-medium">
                                 {formatTime(new Date(new Date(trip.departure_time).getTime() + trip.estimated_duration * 60000).toISOString())}
                             </span>
@@ -233,7 +328,7 @@ function TripCard({ trip, formatCurrency, formatTime, getDuration }) {
                                 className="flex-1"
                                 onClick={() => {
                                     setExpandedInfo(!expandedInfo);
-                                    setShowSeatSelection(false); // Đóng chọn ghế nếu xem info
+                                    setShowSeatSelection(false);
                                 }}
                             >
                                 {expandedInfo ? 'Ẩn' : 'Thông tin'}
@@ -243,7 +338,7 @@ function TripCard({ trip, formatCurrency, formatTime, getDuration }) {
                                 className={cn("flex-1", showSeatSelection ? "bg-red-500 hover:bg-red-600" : "bg-indigo-600 hover:bg-indigo-700")}
                                 onClick={() => {
                                     setShowSeatSelection(!showSeatSelection);
-                                    setExpandedInfo(false); // Đóng info nếu chọn ghế
+                                    setExpandedInfo(false);
                                 }}
                             >
                                 {showSeatSelection ? 'Đóng' : 'Chọn chuyến'}
@@ -252,7 +347,7 @@ function TripCard({ trip, formatCurrency, formatTime, getDuration }) {
                     </div>
                 </div>
 
-                {/* 2. Expanded Info (Amenities) */}
+                {/* Expanded Info (Amenities) */}
                 {expandedInfo && (
                     <div className="mt-6 pt-4 border-t space-y-4 text-sm animate-in slide-in-from-top-2 fade-in">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -280,7 +375,7 @@ function TripCard({ trip, formatCurrency, formatTime, getDuration }) {
                     </div>
                 )}
 
-                {/* 3. Seat Selection Area */}
+                {/* Seat Selection Area */}
                 {showSeatSelection && (
                     <div className="mt-6 border-t pt-6 animate-in zoom-in-95 duration-300">
                         <div className="flex flex-col lg:flex-row gap-6">
