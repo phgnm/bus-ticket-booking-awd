@@ -37,7 +37,7 @@ export default function HomePage() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50/50">
+        <div className="min-h-screen bg-background">
             {/* Hero Section */}
             <section className="relative overflow-hidden bg-slate-900 py-20 sm:py-28">
                 {/* Background & Text ... (Giữ nguyên như cũ) */}
@@ -112,10 +112,10 @@ export default function HomePage() {
                             </CardContent>
                         </Card>
                     </motion.div>
-                    
+
                 </div>
             </section>
-            
+
 
             <ChatWidget />
         </div>

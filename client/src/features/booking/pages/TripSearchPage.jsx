@@ -103,15 +103,15 @@ export default function TripSearchPage() {
     const getDuration = (minutes) => `${Math.floor(minutes / 60)}h${minutes % 60}p`;
 
     return (
-        <div className="container mx-auto px-4 py-8 bg-slate-50 min-h-screen">
+        <div className="container mx-auto px-4 py-8 bg-background min-h-screen">
 
             {/* --- MỚI: THANH TÌM KIẾM --- */}
-            <Card className="mb-8 border-none shadow-md bg-white">
+            <Card className="mb-8 border-none shadow-md bg-card">
                 <CardContent className="p-6">
                     <form onSubmit={handleReSearch} className="grid grid-cols-1 md:grid-cols-7 gap-4 items-end">
                         {/* Nơi đi */}
                         <div className="md:col-span-2 space-y-2">
-                            <Label className="flex items-center gap-2 text-slate-600"><MapPin className="w-4 h-4 text-indigo-500" /> Nơi xuất phát</Label>
+                            <Label className="flex items-center gap-2 text-muted-foreground"><MapPin className="w-4 h-4 text-primary" /> Nơi xuất phát</Label>
                             <select
                                 className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
                                 value={searchCriteria.from}
@@ -125,7 +125,7 @@ export default function TripSearchPage() {
 
                         {/* Nơi đến */}
                         <div className="md:col-span-2 space-y-2">
-                            <Label className="flex items-center gap-2 text-slate-600"><MapPin className="w-4 h-4 text-red-500" /> Nơi đến</Label>
+                            <Label className="flex items-center gap-2 text-muted-foreground"><MapPin className="w-4 h-4 text-red-500" /> Nơi đến</Label>
                             <select
                                 className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
                                 value={searchCriteria.to}
@@ -139,7 +139,7 @@ export default function TripSearchPage() {
 
                         {/* Ngày đi */}
                         <div className="md:col-span-2 space-y-2">
-                            <Label className="flex items-center gap-2 text-slate-600"><Calendar className="w-4 h-4 text-green-500" /> Ngày đi</Label>
+                            <Label className="flex items-center gap-2 text-muted-foreground"><Calendar className="w-4 h-4 text-green-500" /> Ngày đi</Label>
                             <Input
                                 type="date"
                                 value={searchCriteria.date}
@@ -173,7 +173,7 @@ export default function TripSearchPage() {
                             <div>
                                 <Label className="mb-2 block">Sắp xếp theo</Label>
                                 <select
-                                    className="w-full border rounded p-2 text-sm bg-white"
+                                    className="w-full border rounded p-2 text-sm bg-background"
                                     value={filters.sort_by}
                                     onChange={(e) => setFilters({ ...filters, sort_by: e.target.value })}
                                 >
@@ -229,10 +229,10 @@ export default function TripSearchPage() {
                             {[1, 2, 3].map(i => <Skeleton key={i} className="h-48 w-full rounded-xl" />)}
                         </div>
                     ) : trips.length === 0 ? (
-                        <div className="text-center py-10 bg-white rounded-lg border border-dashed">
-                            <Bus className="w-12 h-12 mx-auto text-gray-300 mb-2" />
-                            <p className="text-gray-500">Không tìm thấy chuyến xe nào phù hợp.</p>
-                            <p className="text-sm text-gray-400 mt-2">Hãy thử thay đổi ngày hoặc địa điểm tìm kiếm ở trên.</p>
+                        <div className="text-center py-10 bg-card rounded-lg border border-dashed">
+                            <Bus className="w-12 h-12 mx-auto text-muted-foreground mb-2" />
+                            <p className="text-muted-foreground">Không tìm thấy chuyến xe nào phù hợp.</p>
+                            <p className="text-sm text-muted-foreground/60 mt-2">Hãy thử thay đổi ngày hoặc địa điểm tìm kiếm ở trên.</p>
                         </div>
                     ) : (
                         <div className="space-y-6">
@@ -308,7 +308,7 @@ function TripCard({ trip, formatCurrency, formatTime, getDuration }) {
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-4 text-sm text-slate-500">
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
                             <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs font-semibold">{trip.brand}</span>
                             <span className="flex items-center gap-1"><Bus className="w-3 h-3" /> {trip.bus_type}</span>
                             <span>• {trip.available_seats} ghế trống</span>
@@ -364,8 +364,8 @@ function TripCard({ trip, formatCurrency, formatTime, getDuration }) {
                                 </div>
                             </div>
                             <div>
-                                <h4 className="font-semibold mb-2 text-slate-800">Chính sách</h4>
-                                <ul className="list-disc pl-4 text-slate-600 space-y-1">
+                                <h4 className="font-semibold mb-2 text-foreground">Chính sách</h4>
+                                <ul className="list-disc pl-4 text-muted-foreground space-y-1">
                                     <li>Không hoàn hủy trước 24h giờ khởi hành.</li>
                                     <li>Trẻ em dưới 5 tuổi miễn phí nếu ngồi cùng bố mẹ.</li>
                                     <li>Yêu cầu có mặt tại bến trước 30 phút.</li>
@@ -381,7 +381,7 @@ function TripCard({ trip, formatCurrency, formatTime, getDuration }) {
                         <div className="flex flex-col lg:flex-row gap-6">
 
                             {/* Seat Map Component */}
-                            <div className="flex-1 bg-slate-50 rounded-xl p-4 border border-slate-200">
+                            <div className="flex-1 bg-muted/30 rounded-xl p-4 border">
                                 <SeatSelector
                                     tripId={trip.trip_id}
                                     seatLayout={seatLayout}
@@ -391,27 +391,27 @@ function TripCard({ trip, formatCurrency, formatTime, getDuration }) {
 
                             {/* Booking Summary Sidebar (Inside Card) */}
                             <div className="w-full lg:w-1/3 space-y-4">
-                                <div className="bg-white p-4 rounded-xl border shadow-sm h-full flex flex-col justify-between">
+                                <div className="bg-card p-4 rounded-xl border shadow-sm h-full flex flex-col justify-between">
                                     <div>
                                         <h4 className="font-bold text-lg mb-4 flex items-center gap-2">
-                                            <Armchair className="w-5 h-5 text-indigo-600" />
+                                            <Armchair className="w-5 h-5 text-primary" />
                                             Thông tin đặt vé
                                         </h4>
 
                                         <div className="space-y-3 text-sm">
                                             <div className="flex justify-between">
-                                                <span className="text-slate-500">Số lượng:</span>
+                                                <span className="text-muted-foreground">Số lượng:</span>
                                                 <span className="font-medium">{selectedSeats.length} vé</span>
                                             </div>
                                             <div className="flex justify-between">
-                                                <span className="text-slate-500">Ghế đã chọn:</span>
-                                                <span className="font-medium text-indigo-600">
+                                                <span className="text-muted-foreground">Ghế đã chọn:</span>
+                                                <span className="font-medium text-primary">
                                                     {selectedSeats.length > 0 ? selectedSeats.join(', ') : '---'}
                                                 </span>
                                             </div>
                                             <div className="border-t my-2"></div>
                                             <div className="flex justify-between items-center text-lg">
-                                                <span className="font-bold text-slate-700">Tổng cộng:</span>
+                                                <span className="font-bold text-foreground">Tổng cộng:</span>
                                                 <span className="font-bold text-red-600">
                                                     {formatCurrency(selectedSeats.length * trip.price_base)}
                                                 </span>

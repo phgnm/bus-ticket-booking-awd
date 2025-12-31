@@ -38,7 +38,7 @@ export default function LookupTicketPage() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 py-10 px-4 flex flex-col items-center">
+        <div className="min-h-screen bg-background py-10 px-4 flex flex-col items-center">
             <Card className="w-full max-w-md mb-8">
                 <CardHeader>
                     <CardTitle className="text-center text-2xl text-indigo-700">Tra cứu vé xe</CardTitle>

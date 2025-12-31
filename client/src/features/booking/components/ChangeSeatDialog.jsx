@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
 
 const SEAT_COLORS = {
-    AVAILABLE: "bg-white border-gray-300 hover:border-indigo-500 text-gray-700 cursor-pointer",
+    AVAILABLE: "bg-card border-border hover:border-primary text-foreground cursor-pointer",
     BOOKED: "bg-red-100 border-red-200 text-red-400 cursor-not-allowed",
     CURRENT: "bg-yellow-100 border-yellow-400 text-yellow-800 border-2",
     SELECTED: "bg-indigo-600 border-indigo-600 text-white hover:bg-indigo-700 cursor-pointer",
@@ -180,7 +180,7 @@ export default function ChangeSeatDialog({ open, onOpenChange, booking, onSucces
             <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>Đổi ghế cho vé {booking.booking_code}</DialogTitle>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                         Ghế hiện tại: <span className="font-semibold text-yellow-700">{booking.seat_number}</span>
                         {selectedSeat && selectedSeat !== booking.seat_number && (
                             <> → Ghế mới: <span className="font-semibold text-indigo-600">{selectedSeat}</span></>
@@ -192,16 +192,16 @@ export default function ChangeSeatDialog({ open, onOpenChange, booking, onSucces
                     {loadingSeats ? (
                         <div className="flex justify-center items-center py-10">
                             <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
-                            <span className="ml-2 text-gray-600">Đang tải sơ đồ ghế...</span>
+                            <span className="ml-2 text-muted-foreground">Đang tải sơ đồ ghế...</span>
                         </div>
                     ) : (
-                        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                        <div className="bg-card p-6 rounded-xl shadow-sm border">
                             <h3 className="text-lg font-bold mb-4 text-center">Sơ đồ ghế</h3>
 
                             {/* Legend */}
                             <div className="flex flex-wrap justify-center gap-4 mb-6 text-sm text-slate-600">
                                 <div className="flex items-center gap-2">
-                                    <div className="w-4 h-4 rounded border border-gray-300 bg-white"></div>
+                                    <div className="w-4 h-4 rounded border border-border bg-card"></div>
                                     Trống
                                 </div>
                                 <div className="flex items-center gap-2">
@@ -223,7 +223,7 @@ export default function ChangeSeatDialog({ open, onOpenChange, booking, onSucces
                                 <div className="min-w-max mx-auto space-y-2">
                                     <div className="flex justify-center mb-4 text-slate-300">
                                         <div className="w-full h-1 bg-slate-100 rounded-full mx-10 relative">
-                                            <span className="absolute -top-2 left-1/2 -translate-x-1/2 text-xs bg-white px-2">
+                                            <span className="absolute -top-2 left-1/2 -translate-x-1/2 text-xs bg-background px-2">
                                                 Tài xế
                                             </span>
                                         </div>
