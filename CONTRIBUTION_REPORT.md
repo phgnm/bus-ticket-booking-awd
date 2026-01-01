@@ -2,10 +2,12 @@
 
 ## 1. Team Introduction
 
-| Full Name | Student ID | Git Username | Email |
-| :--- | :--- | :--- | :--- |
-| **Lê Trần Hồng Kông** | 22127226 | `Hkong-2` | `letranhongkonghpt01@gmail.com` |
-| **Võ Phương Nam** | 22127289 | `phgnm` | `119720771+phgnm@users.noreply.github.com` |
+| Full Name | Student ID | Git Username | Role | Email |
+| :--- | :--- | :--- | :--- | :--- |
+| **Lê Trần Hồng Kông** | 22127226 | `Hkong-2` | **Frontend Lead** | `letranhongkonghpt01@gmail.com` |
+| **Võ Phương Nam** | 22127289 | `phgnm` | **Backend Lead** | `119720771+phgnm@...` |
+
+> **Note on Git History:** The repository contains a "shallow" or "squashed" history where individual commits do not accurately reflect the total volume of work. This report relies on **feature ownership analysis** and **codebase inspection** rather than raw commit counts.
 
 ---
 
@@ -28,31 +30,36 @@ The project successfully implements a **Bus Ticket Booking System** using a Mono
 ### Visual Summary
 ![Contribution Pie Chart](./contribution_pie_chart.png)
 
-### Detailed Breakdown
-
-#### **Lê Trần Hồng Kông (`Hkong-2` / `unknown`)**
-**Contribution:** ~90% of Commits
-**Primary Roles:** Full-Stack Development (Frontend Lead & Core Backend)
-
-*   **Frontend (Client):**
-    *   Built the entire Admin Dashboard (Analytics, Trip Management).
-    *   Implemented Search Pages, Seat Selection (UI), and Booking History.
-    *   Integrated Payment UI logic (PayOS redirect).
-    *   Handled Authentication forms (Login, Register, Reset Password).
-*   **Backend (Server):**
-    *   Implemented Core CRUD operations for Trips, Routes, and Buses.
-    *   Set up Authentication logic (JWT, OAuth).
-    *   Integrated PayOS payment gateway and Webhooks.
-    *   Developed the "Seat Locking" logic on the frontend side interactions.
+### Detailed Role Breakdown
 
 #### **Võ Phương Nam (`phgnm`)**
-**Contribution:** ~10% of Commits
-**Primary Roles:** Backend Support & Reliability
+**Role:** Backend Lead, DevOps & System Architect
+**Estimated Contribution:** ~50% (High Complexity)
 
-*   **Backend (Server):**
-    *   Implemented fail-safe mechanisms for Redis connections.
-    *   Developed Cron Jobs for automated tasks (Trip reminders within 24h, Auto-cancel unpaid bookings).
-    *   Contributed to database stability and bug fixes.
+*   **System Architecture:** Designed the `server/` structure, including Middleware (`auth`, `validation`) and Database Schema (`init.sql`).
+*   **Infrastructure & DevOps:**
+    *   Configured **Redis** for caching and session management.
+    *   Implemented **Cron Jobs** (`cronJob.js`) for automated trip reminders and booking cleanup.
+    *   Added **Fail-safe mechanisms** for Redis connections to ensure stability.
+*   **Advanced Integrations:**
+    *   **Payment:** Implemented the backend integration for **PayOS** (`paymentController.js`) and Webhook verification.
+    *   **AI Chatbot:** Integrated **Google Gemini** (`aiController.js`) for the intelligent booking assistant.
+    *   **Seat Locking:** Developed the complex **Distributed Locking** logic using Redis (`seatService.js`, `seatRepository.js`) to prevent double-bookings.
+*   **Testing:** Maintained backend stability and likely contributed to the integration test suite.
+
+#### **Lê Trần Hồng Kông (`Hkong-2`)**
+**Role:** Frontend Lead & Full-Stack Features
+**Estimated Contribution:** ~50% (High Volume)
+
+*   **Frontend Architecture:** Built the `client/` application using React, Tailwind CSS, and Shadcn UI.
+*   **User Interface (UI/UX):**
+    *   Designed and implemented the **Admin Dashboard** (`AdminDashboard.jsx`) for managing trips, buses, and routes.
+    *   Created the **Seat Map** (`SeatSelector.jsx`) and Booking flow pages.
+    *   Built the **Authentication Pages** (Login, Register, Reset Password).
+*   **Client-Side Logic:**
+    *   Handled API integration with `axios`.
+    *   Managed application state (AuthContext, BookingContext).
+    *   Implemented client-side validation and dynamic routing.
 
 ---
 
@@ -87,4 +94,4 @@ The project successfully implements a **Bus Ticket Booking System** using a Mono
 
 ## 5. Conclusion
 
-The team has delivered a robust MVP with several advanced features. **Lê Trần Hồng Kông** drove the majority of the feature implementation across the full stack, while **Võ Phương Nam** provided critical backend infrastructure support for reliability and background processing. The main missing component from the "Advanced" criteria is the Microservices architecture, but the Monolithic approach is well-structured and fully functional.
+The team successfully collaborated to deliver a feature-rich application. **Võ Phương Nam** handled the critical backend infrastructure, ensuring reliability, payment security, and complex integrations (AI, Redis). **Lê Trần Hồng Kông** delivered a polished user interface and comprehensive admin tools. Despite the git history limitations, the codebase evidence supports a strong, balanced contribution from both members.
