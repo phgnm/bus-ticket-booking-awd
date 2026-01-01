@@ -9,18 +9,30 @@ class LocationService {
             : 'locations:all';
 
         // check redis
-        const cachedData = await redisClient.get(cacheKey);
-        if (cachedData) {
-            return JSON.parse(cachedData);
+        if (redisClient.isOpen) {
+            try {
+                const cachedData = await redisClient.get(cacheKey);
+                if (cachedData) {
+                    return JSON.parse(cachedData);
+                }
+            } catch (error) {
+                console.error('Redis error:', error);
+            }
         }
 
         // if there's no cache, call repository
         const locations = await locationRepository.findAll(keyword);
 
         // save into redis for 1 hour
-        await redisClient.set(cacheKey, JSON.stringify(locations), {
-            EX: 3600,
-        });
+        if (redisClient.isOpen && locations.length > 0) {
+            try {
+                await redisClient.set(cacheKey, JSON.stringify(locations), {
+                    EX: 3600,
+                });
+            } catch (error) {
+                console.error('Redis error:', error);
+            }
+        }
 
         return locations;
     }
