@@ -114,7 +114,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* Top Stats Grid */}
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
+            <div className="flex gap-6 flex-wrap md:grid md:grid-cols-2 lg:grid-cols-4">
                 <StatCard
                     title="Doanh thu"
                     value={formatCurrency(revenue)}
@@ -147,14 +147,7 @@ export default function AdminDashboard() {
                     subText="Trên tổng số booking"
                     delay={0.4}
                 />
-                <StatCard
-                    title="Xe hoạt động"
-                    value={activeBuses}
-                    icon={Bus}
-                    colorClass="bg-gradient-to-r from-orange-500 to-amber-500"
-                    subText="Đang chạy tuyến"
-                    delay={0.5}
-                />
+                
             </div>
 
             {/* Main Charts Section */}

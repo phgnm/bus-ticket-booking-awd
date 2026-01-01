@@ -124,7 +124,7 @@ export default function ChatWidget() {
                         animate={{ y: 0, opacity: 1, scale: 1 }}
                         exit={{ y: 20, opacity: 0, scale: 0.95 }}
                         transition={{ duration: 0.2 }}
-                        className="fixed bottom-6 right-6 z-50 w-[360px] h-[500px] flex flex-col shadow-2xl rounded-2xl overflow-hidden bg-white border border-slate-200"
+                        className="fixed bottom-6 right-6 z-50 w-[360px] h-[500px] flex flex-col shadow-2xl rounded-2xl overflow-hidden bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700"
                     >
                         {/* Header */}
                         <div className="bg-indigo-600 p-4 flex items-center justify-between text-white shadow-md shrink-0">
@@ -151,7 +151,7 @@ export default function ChatWidget() {
                         </div>
 
                         {/* Message List */}
-                        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50">
+                        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50 dark:bg-slate-800/50">
                             {messages.map((msg, index) => (
                                 <MessageItem key={index} message={msg} />
                             ))}
@@ -159,7 +159,7 @@ export default function ChatWidget() {
                             {/* Typing Indicator */}
                             {isLoading && (
                                 <div className="flex justify-start">
-                                    <div className="bg-slate-200 rounded-2xl rounded-tl-none py-2 px-4 flex items-center gap-1">
+                                    <div className="bg-slate-200 dark:bg-slate-700 rounded-2xl rounded-tl-none py-2 px-4 flex items-center gap-1">
                                         <motion.div
                                             className="w-1.5 h-1.5 bg-slate-500 rounded-full"
                                             animate={{ y: [0, -5, 0] }}
@@ -182,14 +182,14 @@ export default function ChatWidget() {
                         </div>
 
                         {/* Input Area */}
-                        <div className="p-3 bg-white border-t border-slate-100 shrink-0">
+                        <div className="p-3 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-700 shrink-0">
                             <form onSubmit={handleSendMessage} className="flex gap-2">
                                 <Input
                                     value={inputValue}
                                     onChange={(e) => setInputValue(e.target.value)}
                                     placeholder="Nhập tin nhắn..."
                                     disabled={isLoading}
-                                    className="rounded-full bg-slate-50 border-slate-200 focus-visible:ring-indigo-500"
+                                    className="rounded-full bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-600 focus-visible:ring-indigo-500 dark:text-white dark:placeholder:text-slate-400"
                                 />
                                 <Button
                                     type="submit"
@@ -241,8 +241,8 @@ function MessageItem({ message }) {
                     isUser
                         ? "bg-indigo-600 text-white rounded-2xl rounded-tr-none"
                         : isError
-                            ? "bg-red-50 text-red-600 border border-red-100 rounded-2xl rounded-tl-none"
-                            : "bg-white text-slate-800 border border-slate-100 rounded-2xl rounded-tl-none"
+                            ? "bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-800 rounded-2xl rounded-tl-none"
+                            : "bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-100 dark:border-slate-700 rounded-2xl rounded-tl-none"
                 )}
             >
                 {/* Render Text content with line breaks */}
