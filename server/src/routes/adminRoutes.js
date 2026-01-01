@@ -418,38 +418,45 @@ router.delete('/reviews/:id', adminController.deleteReview);
 /**
  * @swagger
  * /admin/trips:
- * get:
- * summary: Get all trips (Admin)
- * tags: [Admin]
- * parameters:
- * - in: query
- * name: page
- * schema: { type: integer }
- * - in: query
- * name: limit
- * schema: { type: integer }
- * responses:
- * 200:
- * description: List of trips
+ *   get:
+ *     summary: Get all trips (Admin)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: List of trips
  */
 router.get('/trips', adminController.getAllTrips);
 
 /**
  * @swagger
  * /admin/trips/{id}:
- * delete:
- * summary: Delete a trip
- * tags: [Admin]
- * parameters:
- * - in: path
- * name: id
- * required: true
- * schema: { type: integer }
- * responses:
- * 200:
- * description: Trip deleted
- * 400:
- * description: Cannot delete trip with bookings
+ *   delete:
+ *     summary: Delete a trip
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Trip deleted
+ *       400:
+ *         description: Cannot delete trip with bookings
  */
 router.delete('/trips/:id', adminController.deleteTrip);
 
