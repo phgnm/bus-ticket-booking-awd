@@ -51,7 +51,7 @@ export default function LoginPage() {
                 <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 opacity-90" />
                 <div className="relative z-20 flex items-center text-lg font-medium text-white p-10">
                     <BusFront className="mr-2 h-6 w-6" />
-                    VexereClone Inc
+                    BusGo
                 </div>
                 <div className="relative z-20 mt-auto flex flex-col justify-center h-full px-10">
                     <blockquote className="space-y-2 text-white">

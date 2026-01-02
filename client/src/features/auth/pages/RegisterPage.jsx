@@ -58,7 +58,7 @@ export default function RegisterPage() {
 
                 <div className="relative z-20 flex items-center text-lg font-medium text-white p-10">
                     <Bus className="mr-2 h-6 w-6" />
-                    VexereClone Inc
+                    BusGo
                 </div>
 
                 <div className="relative z-20 mt-auto flex flex-col justify-center h-full px-10 text-white">

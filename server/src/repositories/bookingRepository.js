@@ -97,13 +97,15 @@ class BookingRepository {
             SELECT b.*, 
                    t.departure_time, 
                    lf.name as from_loc, lt.name as to_loc,
-                   bus.brand, bus.license_plate
+                   bus.brand, bus.license_plate,
+                   CASE WHEN rev.id IS NOT NULL THEN true ELSE false END as has_review
             FROM bookings b
             JOIN trips t ON b.trip_id = t.id
             JOIN routes r ON t.route_id = r.id
             LEFT JOIN locations lf ON r.route_from = lf.id
             LEFT JOIN locations lt ON r.route_to = lt.id
             JOIN buses bus ON t.bus_id = bus.id
+            LEFT JOIN reviews rev ON rev.booking_id = b.id
             WHERE b.user_id = $1
             ORDER BY b.id DESC
         `;
@@ -122,7 +124,7 @@ class BookingRepository {
 
         const result = await pool.query(query, [bookingId]);
         return result.rows[0];
-    }    
+    }
 
     // finc paid user booking for review
     async findVerifiedBooking(userId, tripId) {
