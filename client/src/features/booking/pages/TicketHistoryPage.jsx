@@ -84,7 +84,7 @@ export default function TicketHistoryPage() {
                 toast({
                     title: "Thành công",
                     description: res.data.msg || "Đã hủy vé thành công.",
-                    className: "bg-green-50 border-green-200 text-green-800"
+                    className: "bg-green-50 border-green-200 text-green-800 dark:bg-green-900/30 dark:border-green-800 dark:text-green-300"
                 });
                 fetchHistory(); // Làm mới danh sách
                 setIsCancelDialogOpen(false); // Đóng dialog
@@ -126,12 +126,12 @@ export default function TicketHistoryPage() {
     // Helper: Màu trạng thái
     const getStatusColor = (status) => {
         switch (status) {
-            case 'CONFIRMED': return 'bg-green-100 text-green-700 border-green-200';
-            case 'PAID': return 'bg-blue-100 text-blue-700 border-blue-200';
-            case 'PENDING_PAYMENT': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
-            case 'PENDING': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
-            case 'CANCELLED': return 'bg-red-100 text-red-700 border-red-200';
-            case 'REFUNDED': return 'bg-purple-100 text-purple-700 border-purple-200';
+            case 'CONFIRMED': return 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800';
+            case 'PAID': return 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800';
+            case 'PENDING_PAYMENT': return 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800';
+            case 'PENDING': return 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800';
+            case 'CANCELLED': return 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800';
+            case 'REFUNDED': return 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-800';
             default: return 'bg-muted text-muted-foreground border-border';
         }
     };
@@ -182,11 +182,11 @@ export default function TicketHistoryPage() {
 
             {bookings.length === 0 ? (
                 <div className="text-center py-16 bg-card rounded-xl border border-dashed">
-                    <div className="inline-flex p-4 rounded-full bg-slate-50 mb-4">
-                        <Ticket className="w-8 h-8 text-slate-300" />
+                    <div className="inline-flex p-4 rounded-full bg-slate-50 dark:bg-slate-800 mb-4">
+                        <Ticket className="w-8 h-8 text-slate-300 dark:text-slate-600" />
                     </div>
-                    <h3 className="text-lg font-medium text-slate-900">Bạn chưa có chuyến đi nào</h3>
-                    <p className="text-slate-500 mt-1">Hãy đặt vé ngay để bắt đầu hành trình mới!</p>
+                    <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100">Bạn chưa có chuyến đi nào</h3>
+                    <p className="text-slate-500 dark:text-slate-400 mt-1">Hãy đặt vé ngay để bắt đầu hành trình mới!</p>
                 </div>
             ) : (
                 <div className="grid gap-4">
@@ -208,13 +208,13 @@ export default function TicketHistoryPage() {
                                         <div className="p-5 flex-1 space-y-4">
                                             <div className="flex justify-between items-start">
                                                 <div>
-                                                    <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
+                                                    <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 mb-1">
                                                         <Calendar className="w-4 h-4" />
                                                         {format(new Date(item.departure_time), "dd 'tháng' MM, yyyy", { locale: vi })}
                                                     </div>
-                                                    <div className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                                                    <div className="text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
                                                         {format(new Date(item.departure_time), "HH:mm")}
-                                                        <span className="text-sm font-normal px-2 py-0.5 rounded bg-slate-100 text-slate-600">
+                                                        <span className="text-sm font-normal px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
                                                             {item.bus_brand}
                                                         </span>
                                                     </div>
@@ -227,20 +227,20 @@ export default function TicketHistoryPage() {
                                             <div className="flex items-start gap-3">
                                                 <div className="flex flex-col items-center gap-0.5 mt-1">
                                                     <div className="w-2.5 h-2.5 rounded-full bg-background border-2 border-primary"></div>
-                                                    <div className="h-10 w-0.5 bg-slate-200 border-l border-dashed border-slate-300"></div>
+                                                    <div className="h-10 w-0.5 bg-slate-200 dark:bg-slate-700 border-l border-dashed border-slate-300 dark:border-slate-600"></div>
                                                     <div className="w-2.5 h-2.5 rounded-full bg-indigo-500"></div>
                                                 </div>
                                                 <div className="flex flex-col gap-3 flex-1">
                                                     <div>
-                                                        <div className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Điểm đón</div>
-                                                        <div className="font-medium text-slate-700 flex items-center gap-1">
-                                                            <MapPin className="w-3 h-3 text-slate-400" />
+                                                        <div className="text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500 font-semibold">Điểm đón</div>
+                                                        <div className="font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                                                            <MapPin className="w-3 h-3 text-slate-400 dark:text-slate-500" />
                                                             {item.from_loc || item.from_location}
                                                         </div>
                                                     </div>
                                                     <div>
-                                                        <div className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Điểm trả</div>
-                                                        <div className="font-medium text-slate-700 flex items-center gap-1">
+                                                        <div className="text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500 font-semibold">Điểm trả</div>
+                                                        <div className="font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1">
                                                             <MapPin className="w-3 h-3 text-indigo-500" />
                                                             {item.to_loc || item.to_location}
                                                         </div>
@@ -250,19 +250,19 @@ export default function TicketHistoryPage() {
                                         </div>
 
                                         {/* Cột phải: Thông tin vé & Hành động */}
-                                        <div className="p-5 bg-slate-50/50 border-t md:border-t-0 md:border-l flex flex-col justify-between min-w-[240px]">
+                                        <div className="p-5 bg-slate-50/50 dark:bg-slate-900/50 border-t md:border-t-0 md:border-l dark:border-slate-800 flex flex-col justify-between min-w-[240px]">
                                             <div className="space-y-2">
                                                 <div className="flex justify-between text-sm">
-                                                    <span className="text-slate-500">Mã vé:</span>
-                                                    <span className="font-mono font-bold text-slate-700">{item.booking_code}</span>
+                                                    <span className="text-slate-500 dark:text-slate-400">Mã vé:</span>
+                                                    <span className="font-mono font-bold text-slate-700 dark:text-slate-300">{item.booking_code}</span>
                                                 </div>
                                                 <div className="flex justify-between text-sm">
-                                                    <span className="text-slate-500">Ghế:</span>
-                                                    <span className="font-bold text-indigo-600">{item.seat_number}</span>
+                                                    <span className="text-slate-500 dark:text-slate-400">Ghế:</span>
+                                                    <span className="font-bold text-indigo-600 dark:text-indigo-400">{item.seat_number}</span>
                                                 </div>
-                                                <div className="flex justify-between text-sm pt-2 border-t border-dashed border-slate-200">
-                                                    <span className="text-slate-500">Tổng tiền:</span>
-                                                    <span className="font-bold text-indigo-700 text-lg">
+                                                <div className="flex justify-between text-sm pt-2 border-t border-dashed border-slate-200 dark:border-slate-700">
+                                                    <span className="text-slate-500 dark:text-slate-400">Tổng tiền:</span>
+                                                    <span className="font-bold text-indigo-700 dark:text-indigo-400 text-lg">
                                                         {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.total_price)}
                                                     </span>
                                                 </div>
@@ -349,7 +349,7 @@ export default function TicketHistoryPage() {
             <Dialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2 text-red-600">
+                        <DialogTitle className="flex items-center gap-2 text-red-600 dark:text-red-400">
                             <AlertTriangle className="h-5 w-5" /> Xác nhận hủy vé
                         </DialogTitle>
                         <DialogDescription>
@@ -357,15 +357,15 @@ export default function TicketHistoryPage() {
                         </DialogDescription>
                     </DialogHeader>
 
-                    <div className="py-2 text-slate-700">
-                        <div className="bg-slate-50 p-3 rounded-md mb-3 text-sm border border-slate-100">
+                    <div className="py-2 text-slate-700 dark:text-slate-300">
+                        <div className="bg-slate-50 dark:bg-slate-900 p-3 rounded-md mb-3 text-sm border border-slate-100 dark:border-slate-800">
                             <p><strong>Mã vé:</strong> {ticketToCancel?.booking_code}</p>
                             <p><strong>Chuyến:</strong> {ticketToCancel?.from_loc} đi {ticketToCancel?.to_loc}</p>
                             <p><strong>Giờ khởi hành:</strong> {ticketToCancel && format(new Date(ticketToCancel.departure_time), "HH:mm dd/MM/yyyy")}</p>
                         </div>
 
                         <p className="text-sm font-semibold mb-1">Chính sách hoàn tiền:</p>
-                        <ul className="list-disc list-inside text-sm text-slate-500 space-y-1">
+                        <ul className="list-disc list-inside text-sm text-slate-500 dark:text-slate-400 space-y-1">
                             <li>Nếu vé đã thanh toán: Hoàn 90% giá trị vé.</li>
                             <li>Nếu vé chưa thanh toán: Hủy vé ngay lập tức.</li>
                             <li>Thời gian hoàn tiền: 5-7 ngày làm việc.</li>

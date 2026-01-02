@@ -29,7 +29,7 @@ export default function ForgotPasswordPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+        <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 p-4">
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -51,7 +51,7 @@ export default function ForgotPasswordPage() {
                                     </div>
                                 </div>
                                 <div className="space-y-2">
-                                    <h3 className="font-semibold text-slate-900">Đã gửi email!</h3>
+                                    <h3 className="font-semibold text-slate-900 dark:text-slate-100">Đã gửi email!</h3>
                                     <p className="text-sm text-slate-600">{message}</p>
                                 </div>
                                 <Button variant="outline" className="w-full mt-4" onClick={() => setStatus('idle')}>

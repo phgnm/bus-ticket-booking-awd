@@ -296,7 +296,7 @@ function TripCard({ trip, formatCurrency, formatTime, getDuration }) {
                             </span>
                         </div>
 
-                        <div className="flex justify-between items-center bg-slate-50 p-2 rounded-md border border-slate-100 max-w-md">
+                        <div className="flex justify-between items-center bg-slate-50 dark:bg-slate-900 p-2 rounded-md border border-slate-100 dark:border-slate-800 max-w-md">
                             <div className="flex items-center gap-2">
                                 <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
                                 <span className="font-medium text-sm">{trip.from_location_name}</span>

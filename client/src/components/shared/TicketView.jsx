@@ -69,7 +69,7 @@ export default function TicketView({ booking }) {
                     </div>
                 </div>
 
-                <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 grid grid-cols-2 gap-4">
+                <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-lg border border-slate-100 dark:border-slate-800 grid grid-cols-2 gap-4">
                     <div>
                         <span className="text-xs text-muted-foreground block">Hành khách</span>
                         <div className="flex items-center gap-2 font-medium text-sm">
@@ -92,7 +92,7 @@ export default function TicketView({ booking }) {
             <div className="md:w-64 bg-muted/30 p-6 flex flex-col items-center justify-center border-t md:border-t-0 md:border-l border-dashed border-border relative">
                 <div className="absolute -left-3 top-1/2 w-6 h-6 bg-background rounded-full -translate-y-1/2 z-10 hidden md:block border-r border-border"></div>
 
-                <div className="mb-4 bg-white p-2 rounded shadow-sm">
+                <div className="mb-4 bg-white dark:bg-slate-800 p-2 rounded shadow-sm">
                     <QRCodeSVG
                         value={booking.booking_code || 'INVALID'}
                         size={120}

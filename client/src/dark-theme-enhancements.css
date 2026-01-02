@@ -88,3 +88,45 @@
     outline: 2px solid hsl(210 100% 65%);
     outline-offset: 0;
 }
+
+/* Improved border visibility in dark mode */
+.dark [class*="border-slate-"] {
+    border-color: hsl(217 32% 25%);
+}
+
+/* Better hover states for dark mode */
+.dark .hover\:bg-slate-50:hover {
+    background-color: hsl(217 33% 15%);
+}
+
+/* Card backgrounds more visible in dark mode */
+.dark .bg-card {
+    background-color: hsl(222 47% 11%);
+    border-color: hsl(217 32% 20%);
+}
+
+/* Popover and dropdown better visibility */
+.dark [role="menu"],
+.dark [role="listbox"],
+.dark [data-radix-popper-content-wrapper] {
+    background-color: hsl(222 47% 11%);
+    border: 1px solid hsl(217 32% 20%);
+}
+
+/* Toast notifications better contrast */
+.dark [data-sonner-toast] {
+    background-color: hsl(222 47% 11%) !important;
+    border-color: hsl(217 32% 20%) !important;
+}
+
+/* Table row hover in dark mode */
+.dark tr:hover {
+    background-color: hsl(217 33% 12%);
+}
+
+/* Badge and pill components */
+.dark .badge,
+.dark [class*="badge-"] {
+    background-color: hsl(217 33% 17%);
+    color: hsl(210 20% 98%);
+}

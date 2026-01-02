@@ -266,7 +266,7 @@ function MessageItem({ message }) {
 // Mock Component nếu muốn hiển thị Card chuyến xe trong chat
 function TripCardMock({ brand, price, time }) {
     return (
-        <div className="bg-slate-50 p-2 rounded border border-slate-200 text-xs">
+        <div className="bg-slate-50 dark:bg-slate-900 p-2 rounded border border-slate-200 dark:border-slate-700 text-xs">
             <div className="font-bold text-indigo-700">{brand || "Nhà xe Phương Trang"}</div>
             <div className="flex justify-between mt-1 text-slate-500">
                 <span>{time || "22:00"}</span>

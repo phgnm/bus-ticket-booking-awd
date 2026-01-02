@@ -122,14 +122,14 @@ export default function HomePage() {
             </section>
 
             {/* Statistics Section */}
-            <section className="py-12 bg-gradient-to-br from-indigo-50 to-blue-50">
+            <section className="py-12 bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
                 <div className="container mx-auto px-4">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                         {[
-                            { icon: Users, label: 'Khách hàng', value: '50,000+', color: 'text-blue-600' },
-                            { icon: Bus, label: 'Chuyến xe', value: '1,200+', color: 'text-green-600' },
-                            { icon: MapPinned, label: 'Tuyến đường', value: '300+', color: 'text-purple-600' },
-                            { icon: Award, label: 'Giải thưởng', value: '15+', color: 'text-orange-600' }
+                            { icon: Users, label: 'Khách hàng', value: '50,000+', color: 'text-blue-600 dark:text-blue-400' },
+                            { icon: Bus, label: 'Chuyến xe', value: '1,200+', color: 'text-green-600 dark:text-green-400' },
+                            { icon: MapPinned, label: 'Tuyến đường', value: '300+', color: 'text-purple-600 dark:text-purple-400' },
+                            { icon: Award, label: 'Giải thưởng', value: '15+', color: 'text-orange-600 dark:text-orange-400' }
                         ].map((stat, idx) => (
                             <motion.div
                                 key={idx}
@@ -139,11 +139,11 @@ export default function HomePage() {
                                 viewport={{ once: true }}
                                 className="text-center"
                             >
-                                <div className={`inline-flex p-4 rounded-full bg-white shadow-lg mb-3`}>
+                                <div className={`inline-flex p-4 rounded-full bg-white dark:bg-slate-800 shadow-lg mb-3`}>
                                     <stat.icon className={`w-8 h-8 ${stat.color}`} />
                                 </div>
-                                <h3 className="text-3xl font-bold text-slate-800">{stat.value}</h3>
-                                <p className="text-slate-600 font-medium">{stat.label}</p>
+                                <h3 className="text-3xl font-bold text-slate-800 dark:text-slate-100">{stat.value}</h3>
+                                <p className="text-slate-600 dark:text-slate-400 font-medium">{stat.label}</p>
                             </motion.div>
                         ))}
                     </div>
@@ -151,7 +151,7 @@ export default function HomePage() {
             </section>
 
             {/* Features Section */}
-            <section className="py-16 bg-white">
+            <section className="py-16 bg-white dark:bg-slate-950">
                 <div className="container mx-auto px-4">
                     <div className="text-center mb-12">
                         <motion.div
@@ -159,10 +159,10 @@ export default function HomePage() {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                         >
-                            <h2 className="text-3xl font-bold text-slate-900 mb-3">
+                            <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-3">
                                 Tại sao chọn chúng tôi?
                             </h2>
-                            <p className="text-slate-600 max-w-2xl mx-auto">
+                            <p className="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
                                 Cam kết mang đến trải nghiệm đặt vé xe khách tốt nhất với công nghệ hiện đại
                             </p>
                         </motion.div>
@@ -219,8 +219,8 @@ export default function HomePage() {
                                         <div className={`inline-flex p-3 rounded-lg ${feature.color}`}>
                                             <feature.icon className="w-6 h-6" />
                                         </div>
-                                        <h3 className="text-xl font-bold text-slate-800">{feature.title}</h3>
-                                        <p className="text-slate-600 leading-relaxed">{feature.desc}</p>
+                                        <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100">{feature.title}</h3>
+                                        <p className="text-slate-600 dark:text-slate-400 leading-relaxed">{feature.desc}</p>
                                     </CardContent>
                                 </Card>
                             </motion.div>
@@ -229,11 +229,11 @@ export default function HomePage() {
                 </div>
             </section>
 
-            
-           
+
+
 
             {/* Testimonials Section */}
-            <section className="py-16 bg-white">
+            <section className="py-16 bg-white dark:bg-slate-950">
                 <div className="container mx-auto px-4">
                     <div className="text-center mb-12">
                         <motion.div
@@ -241,10 +241,10 @@ export default function HomePage() {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                         >
-                            <h2 className="text-3xl font-bold text-slate-900 mb-3">
+                            <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-3">
                                 Khách hàng nói gì về chúng tôi
                             </h2>
-                            <p className="text-slate-600">Hàng nghìn đánh giá 5 sao từ khách hàng</p>
+                            <p className="text-slate-600 dark:text-slate-400">Hàng nghìn đánh giá 5 sao từ khách hàng</p>
                         </motion.div>
                     </div>
 
@@ -285,11 +285,11 @@ export default function HomePage() {
                                             <img
                                                 src={testimonial.avatar}
                                                 alt={testimonial.name}
-                                                className="w-14 h-14 rounded-full object-cover border-2 border-indigo-200"
+                                                className="w-14 h-14 rounded-full object-cover border-2 border-indigo-200 dark:border-indigo-700"
                                             />
                                             <div>
-                                                <h4 className="font-semibold text-slate-800">{testimonial.name}</h4>
-                                                <p className="text-sm text-slate-500">{testimonial.role}</p>
+                                                <h4 className="font-semibold text-slate-800 dark:text-slate-100">{testimonial.name}</h4>
+                                                <p className="text-sm text-slate-500 dark:text-slate-400">{testimonial.role}</p>
                                             </div>
                                         </div>
                                         <div className="flex gap-1 mb-3">
@@ -297,7 +297,7 @@ export default function HomePage() {
                                                 <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                                             ))}
                                         </div>
-                                        <p className="text-slate-600 leading-relaxed italic">
+                                        <p className="text-slate-600 dark:text-slate-300 leading-relaxed italic">
                                             "{testimonial.comment}"
                                         </p>
                                     </CardContent>
@@ -325,7 +325,7 @@ export default function HomePage() {
                         <div className="flex gap-4 justify-center flex-wrap">
                             <Button
                                 size="lg"
-                                className="bg-white text-indigo-600 hover:bg-blue-50 font-semibold px-8"
+                                className="bg-white dark:bg-slate-100 text-indigo-600 dark:text-indigo-700 hover:bg-blue-50 dark:hover:bg-white font-semibold px-8"
                                 onClick={() => navigate('/search')}
                             >
                                 Tìm chuyến xe ngay
@@ -334,7 +334,7 @@ export default function HomePage() {
                                 <Button
                                     size="lg"
                                     variant="outline"
-                                    className="border-2 border-white text-white hover:bg-white/10 font-semibold px-8"
+                                    className="border-2 border-white dark:border-slate-200 text-white dark:text-white hover:bg-white/10 dark:hover:bg-white/20 font-semibold px-8"
                                     onClick={() => navigate('/register')}
                                 >
                                     Đăng ký miễn phí
