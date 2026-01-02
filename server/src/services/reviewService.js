@@ -3,11 +3,11 @@ const bookingRepository = require('../repositories/bookingRepository');
 
 class ReviewService {
     async createReview(userId, data) {
-        const { tripId, rating, comment } = data;
+        const { bookingId, rating, comment } = data;
 
-        // validate tripId
-        if (!tripId || isNaN(tripId)) {
-            throw new Error('tripId không hợp lệ. Vui lòng chọn chuyến đi hợp lệ.');
+        // validate bookingId
+        if (!bookingId || isNaN(bookingId)) {
+            throw new Error('bookingId không hợp lệ. Vui lòng chọn vé hợp lệ.');
         }
 
         // validate rating
@@ -15,27 +15,31 @@ class ReviewService {
             throw new Error('Số sao đánh giá phải từ 1 đến 5');
         }
 
-        // check for valid booking
-        const validBooking = await bookingRepository.findVerifiedBooking(userId, tripId);
+        // check for valid booking - verify it belongs to the user and is paid
+        const validBooking = await bookingRepository.findById(bookingId);
         console.log('Valid booking found:', validBooking);
 
-        if (!validBooking) {
-            throw new Error('Bạn cần mua vé và thanh toán chuyến này trước khi đánh giá.');
+        if (!validBooking || validBooking.user_id !== userId) {
+            throw new Error('Không tìm thấy vé hoặc vé không thuộc về bạn.');
+        }
+
+        if (!['PAID', 'COMPLETED'].includes(validBooking.booking_status)) {
+            throw new Error('Bạn cần thanh toán vé trước khi đánh giá.');
         }
 
         // check if the ticket has already been reviewed
-        const existingReview = await reviewRepository.findByBookingId(validBooking.id);
-        console.log('Existing review for booking ID', validBooking.id, ':', existingReview);
+        const existingReview = await reviewRepository.findByBookingId(bookingId);
+        console.log('Existing review for booking ID', bookingId, ':', existingReview);
 
         if (existingReview) {
-            throw new Error('Bạn đã đánh giá cho chuyến đi này rồi.');
+            throw new Error('Bạn đã đánh giá cho vé này rồi.');
         }
 
         // create review
         return await reviewRepository.create({
             userId,
-            tripId: parseInt(tripId),
-            bookingId: validBooking.id,
+            tripId: validBooking.trip_id,
+            bookingId: parseInt(bookingId),
             rating: parseInt(rating),
             comment: comment || null
         });

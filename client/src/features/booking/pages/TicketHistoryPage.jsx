@@ -197,7 +197,8 @@ export default function TicketHistoryPage() {
                         const tripDone = isTripCompleted(item.departure_time);
 
                         // Điều kiện hiển thị nút đánh giá: Đã thanh toán + Đã đi xong
-                        const canReview = (item.booking_status === 'PAID' || item.booking_status === 'COMPLETED') && tripDone;
+                        const showReviewButton = (item.booking_status === 'PAID' || item.booking_status === 'COMPLETED') && tripDone;
+                        const canReview = showReviewButton && !item.has_review;
 
                         return (
                             <Card key={item.id} className="hover:shadow-md transition-all duration-200 border-l-4 border-l-indigo-500">
@@ -268,16 +269,18 @@ export default function TicketHistoryPage() {
                                             </div>
 
                                             <div className="flex gap-2 mt-4 justify-end flex-wrap">
-                                                {/* [MỚI] Nút Đánh giá (Hiển thị đầu tiên nếu đủ điều kiện) */}
-                                                {canReview && (
+                                                {/* [MỚI] Nút Đánh giá (Hiển thị khi chuyến đi hoàn thành, disable nếu đã đánh giá) */}
+                                                {showReviewButton && (
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
-                                                        className="text-yellow-600 border-yellow-200 hover:bg-yellow-50 hover:text-yellow-700"
+                                                        className="text-yellow-600 border-yellow-200 hover:bg-yellow-50 hover:text-yellow-700 disabled:opacity-50 disabled:cursor-not-allowed"
                                                         onClick={() => handleOpenReview(item)}
+                                                        disabled={item.has_review}
+                                                        title={item.has_review ? "Bạn đã đánh giá chuyến đi này" : "Đánh giá chuyến đi"}
                                                     >
-                                                        <Star className="w-4 h-4 mr-1 fill-yellow-600" />
-                                                        Đánh giá
+                                                        <Star className={`w-4 h-4 mr-1 ${item.has_review ? 'fill-yellow-400' : 'fill-yellow-600'}`} />
+                                                        {item.has_review ? "Đã đánh giá" : "Đánh giá"}
                                                     </Button>
                                                 )}
 

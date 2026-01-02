@@ -5,12 +5,12 @@ const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
-    // [FIX] Khởi tạo state từ sessionStorage
+    // Khởi tạo state từ sessionStorage
     const [token, setToken] = useState(sessionStorage.getItem('token'));
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // [FIX] Kiểm tra user từ sessionStorage khi reload trang
+        //  Kiểm tra user từ sessionStorage khi reload trang
         const storedUser = sessionStorage.getItem('user');
         if (token && storedUser) {
             try {
@@ -25,7 +25,7 @@ export const AuthProvider = ({ children }) => {
     const login = (newToken, userData) => {
         setToken(newToken);
         setUser(userData);
-        // [FIX] Lưu vào sessionStorage (mất khi đóng tab)
+        //  Lưu vào sessionStorage (mất khi đóng tab)
         sessionStorage.setItem('token', newToken);
         sessionStorage.setItem('user', JSON.stringify(userData));
     };
@@ -38,7 +38,7 @@ export const AuthProvider = ({ children }) => {
         } finally {
             setToken(null);
             setUser(null);
-            // [FIX] Xóa khỏi sessionStorage
+            //  Xóa khỏi sessionStorage
             sessionStorage.removeItem('token');
             sessionStorage.removeItem('user');
             // Dùng window.location để clear state sạch sẽ và redirect về home

@@ -23,7 +23,7 @@ export default function Navbar() {
             <div className="w-full flex h-16 items-center justify-between px-6">
                 <Link to="/" className="flex items-center gap-2 text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">
                     <Bus className="h-6 w-6 text-primary" />
-                    VexereClone
+                    BusGo
                 </Link>
 
                 <nav className="flex items-center gap-4">

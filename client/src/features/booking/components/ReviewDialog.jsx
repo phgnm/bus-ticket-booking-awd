@@ -38,13 +38,13 @@ export default function ReviewDialog({ open, onOpenChange, booking, onSuccess })
             return;
         }
 
-        // Kiểm tra trip_id
-        if (!booking?.trip_id) {
+        // Kiểm tra booking_id
+        if (!booking?.id) {
             console.error("Booking data:", booking);
             toast({
                 variant: "destructive",
                 title: "Lỗi",
-                description: "Không tìm thấy thông tin chuyến đi. Vui lòng thử lại."
+                description: "Không tìm thấy thông tin vé. Vui lòng thử lại."
             });
             return;
         }
@@ -52,9 +52,9 @@ export default function ReviewDialog({ open, onOpenChange, booking, onSuccess })
         try {
             setIsSubmitting(true);
 
-            // Gọi API
+            // Gọi API với bookingId thay vì tripId
             const payload = {
-                tripId: parseInt(booking.trip_id), // Đảm bảo tripId là số nguyên
+                bookingId: parseInt(booking.id), // Gửi booking ID thay vì trip ID
                 rating: rating,
                 comment: comment || "" // Đảm bảo comment là chuỗi
             };
