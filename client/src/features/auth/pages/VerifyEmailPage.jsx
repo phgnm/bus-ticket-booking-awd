@@ -64,7 +64,7 @@ export default function VerifyEmailPage() {
                                 <h3 className="text-xl font-semibold text-slate-800">Đăng ký thành công!</h3>
                                 <p className="text-slate-600">
                                     Chúng tôi đã gửi link xác thực đến
-                                    {email ? <span className="font-semibold text-slate-900"> {email}</span> : ' email của bạn'}.
+                                    {email ? <span className="font-semibold text-slate-900 dark:text-slate-100"> {email}</span> : ' email của bạn'}.
                                     <br />Vui lòng kiểm tra hộp thư (kể cả mục spam).
                                 </p>
                             </div>

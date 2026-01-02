@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { motion } from 'framer-motion';
-import { Bus, CheckCircle2 } from 'lucide-react';
+import { Bus, CheckCircle2, Eye, EyeOff } from 'lucide-react';
 
 export default function RegisterPage() {
     const [formData, setFormData] = useState({
@@ -15,6 +15,8 @@ export default function RegisterPage() {
         confirmPassword: ''
     });
     const [error, setError] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const navigate = useNavigate(); // Hook chuyển hướng
 
     const handleChange = (e) => {
@@ -38,7 +40,7 @@ export default function RegisterPage() {
 
             // Chuyển hướng sang trang VerifyEmail và gửi kèm email để hiển thị
             navigate('/verify-email', { state: { email: formData.email } });
-            
+
         } catch (err) {
             if (err.response?.data?.errors && Array.isArray(err.response.data.errors)) {
                 setError(err.response.data.errors.join(', '));
@@ -106,11 +108,47 @@ export default function RegisterPage() {
                         <div className="grid grid-cols-2 gap-4">
                             <div className="grid gap-2">
                                 <Label htmlFor="password">Mật khẩu</Label>
-                                <Input id="password" type="password" required value={formData.password} onChange={handleChange} className="h-11" />
+                                <div className="relative">
+                                    <Input
+                                        id="password"
+                                        type={showPassword ? "text" : "password"}
+                                        required
+                                        value={formData.password}
+                                        onChange={handleChange}
+                                        className="h-11 pr-10"
+                                        style={{ WebkitTextSecurity: showPassword ? 'none' : 'disc' }}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 focus:outline-none"
+                                        tabIndex={-1}
+                                    >
+                                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                    </button>
+                                </div>
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="confirmPassword">Xác nhận</Label>
-                                <Input id="confirmPassword" type="password" required value={formData.confirmPassword} onChange={handleChange} className="h-11" />
+                                <div className="relative">
+                                    <Input
+                                        id="confirmPassword"
+                                        type={showConfirmPassword ? "text" : "password"}
+                                        required
+                                        value={formData.confirmPassword}
+                                        onChange={handleChange}
+                                        className="h-11 pr-10"
+                                        style={{ WebkitTextSecurity: showConfirmPassword ? 'none' : 'disc' }}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 focus:outline-none"
+                                        tabIndex={-1}
+                                    >
+                                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
