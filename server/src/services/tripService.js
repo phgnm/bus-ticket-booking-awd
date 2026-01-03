@@ -16,8 +16,12 @@ class TripService {
         const cacheKey = `trips:${JSON.stringify(filters)}`;
 
         if (process.env.NODE_ENV !== 'test' && redisClient.isOpen) {
-            const cached = await redisClient.get(cacheKey);
-            if (cached) return JSON.parse(cached);
+            try {
+                const cached = await redisClient.get(cacheKey);
+                if (cached) return JSON.parse(cached);
+            } catch (err) {
+                console.error('⚠️ Redis Get Error (Trips):', err.message);
+            }
         }
 
         // call repo
@@ -41,10 +45,14 @@ class TripService {
         };
 
         // set cache
-        if (process.env.NODE_ENV !== 'test' && redisClient.isOpen) {
-            await redisClient.set(cacheKey, JSON.stringify(response), {
-                EX: 300,
-            });
+        if (process.env.NODE_ENV !== 'test' && redisClient.isOpen && result.trips.length > 0) {
+            try {
+                await redisClient.set(cacheKey, JSON.stringify(response), {
+                    EX: 300,
+                });
+            } catch (err) {
+                console.error('⚠️ Redis Set Error (Trips):', err.message);
+            }
         }
 
         return response;
