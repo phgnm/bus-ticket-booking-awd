@@ -70,8 +70,14 @@ class TripService {
     async getSeatStatus(tripId) {
         const soldSeats = await tripRepository.getSoldSeats(tripId);
 
-        const keys = await redisClient.keys(`lock:trip:${tripId}:seat:*`);
-        const lockedSeats = keys.map((key) => key.split(':').pop());
+        if (redisClient.isOpen) {
+            try {
+                const keys = await redisClient.keys(`lock:trip:${tripId}:seat:*`);
+                lockedSeats = keys.map((key) => key.split(':').pop());
+            } catch (err) {
+                console.error('⚠️ Redis Keys Error (Seats):', err.message);
+            }
+        }
 
         return { sold_seats: soldSeats, locked_seats: lockedSeats };
     }
@@ -135,11 +141,17 @@ class TripService {
             for (const seatNum of seats) {
                 // check lock
                 const key = `lock:trip:${tripId}:seat:${seatNum}`;
-                const holder = await seatRepository.getSeatHolder(key);
-                if (!holder) throw new Error(`Ghế ${seatNum} hết hạn giữ chỗ.`);
-                if (holder !== redisOwnerId)
-                    throw new Error(`Ghế ${seatNum} bị người khác giữ.`);
+                let holder = redisOwnerId; 
 
+                if (redisClient.isOpen) {
+                    try {
+                        holder = await seatRepository.getSeatHolder(key);
+                        if (!holder) throw new Error(`Ghế ${seatNum} hết hạn giữ chỗ.`);
+                        if (holder !== redisOwnerId) throw new Error(`Ghế ${seatNum} bị người khác giữ.`);
+                    } catch (redisErr) {
+                        console.warn('⚠️ Redis down, skipping lock check:', redisErr.message);
+                    }
+                }
                 // check db
                 const isSold = await bookingRepository.checkSeatsAvailability(
                     client,
@@ -166,10 +178,11 @@ class TripService {
             await client.query('COMMIT');
 
             // clean up redis
-            for (const s of seats)
-                await seatRepository.removeLock(
-                    `lock:trip:${tripId}:seat:${s}`,
-                );
+            if (redisClient.isOpen) {
+                for (const s of seats) {
+                    try { await seatRepository.removeLock(`lock:trip:${tripId}:seat:${s}`); } catch (e) {}
+                }
+            }
 
             // async email & pdf
             this._sendTicketEmail({

@@ -39,7 +39,13 @@ class LocationService {
 
     async createLocation(data) {
         const location = await locationRepository.create(data);
-        await redisClient.del('locations:all'); // Xóa cache
+        if (redisClient.isOpen) {
+            try {
+                await redisClient.del('locations:all');
+            } catch (error) {
+                console.error('Redis Clear Error:', error.message);
+            }
+        }
         return location;
     }
 
