@@ -32,7 +32,7 @@ class TripRepository {
         const query = `
             SELECT t.*, r.price_base, 
                    lf.name as from_loc, lt.name as to_loc, 
-                   b.license_plate, t.departure_time
+                   b.license_plate, b.seat_layout, b.seat_capacity, t.departure_time
             FROM trips t
             JOIN routes r ON t.route_id = r.id
             JOIN locations lf ON r.route_from = lf.id
@@ -123,7 +123,7 @@ class TripRepository {
         const dataSql = `
             SELECT t.id as trip_id, t.departure_time, t.status, r.id as route_id, r.price_base, 
                    r.estimated_duration, r.distance, b.id as bus_id, b.brand, b.license_plate, 
-                   b.type as bus_type, b.seat_capacity, b.amenities, b.images,
+                   b.type as bus_type, b.seat_capacity, b.seat_layout, b.amenities, b.images,
                    lf.name as from_location_name, lt.name as to_location_name,
                    (b.seat_capacity - COALESCE(booked.sold_tickets, 0)) as available_seats
             ${joinClause} ${whereSql}
