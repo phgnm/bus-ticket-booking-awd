@@ -1,4 +1,5 @@
 const seatRepository = require('../repositories/seatRepository');
+const redisClient = require('../config/redis');
 
 class SeatService {
     async lockSeats(tripId, seats, userId) {

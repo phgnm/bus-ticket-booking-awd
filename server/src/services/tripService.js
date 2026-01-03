@@ -68,6 +68,7 @@ class TripService {
 
     // --- SEATS ---
     async getSeatStatus(tripId) {
+        let lockedSeats = [];
         const soldSeats = await tripRepository.getSoldSeats(tripId);
 
         if (redisClient.isOpen) {
