@@ -15,8 +15,7 @@ const api = axios.create({
 // Interceptor: Tự động gắn token vào header nếu có
 api.interceptors.request.use(
     (config) => {
-        // [FIX] Đổi từ localStorage -> sessionStorage
-        // [FIX] Đổi tên key từ 'idToken' -> 'token' cho khớp với lúc lưu
+       
         const token = sessionStorage.getItem('token');
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;

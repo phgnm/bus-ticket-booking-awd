@@ -7,12 +7,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { GoogleLogin } from '@react-oauth/google';
 import { motion } from 'framer-motion';
-import { BusFront } from 'lucide-react';
+import { BusFront, Eye, EyeOff } from 'lucide-react';
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const { login } = useAuth();
     const navigate = useNavigate();
 
@@ -51,7 +52,7 @@ export default function LoginPage() {
                 <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 opacity-90" />
                 <div className="relative z-20 flex items-center text-lg font-medium text-white p-10">
                     <BusFront className="mr-2 h-6 w-6" />
-                    VexereClone Inc
+                    BusGo
                 </div>
                 <div className="relative z-20 mt-auto flex flex-col justify-center h-full px-10">
                     <blockquote className="space-y-2 text-white">
@@ -99,14 +100,25 @@ export default function LoginPage() {
                                     Quên mật khẩu?
                                 </Link>
                             </div>
-                            <Input
-                                id="password"
-                                type="password"
-                                required
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                className="h-11"
-                            />
+                            <div className="relative">
+                                <Input
+                                    id="password"
+                                    type={showPassword ? "text" : "password"}
+                                    required
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="h-11 pr-10"
+                                    style={{ WebkitTextSecurity: showPassword ? 'none' : 'disc' }}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 focus:outline-none"
+                                    tabIndex={-1}
+                                >
+                                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                </button>
+                            </div>
                         </div>
 
                         {error && (

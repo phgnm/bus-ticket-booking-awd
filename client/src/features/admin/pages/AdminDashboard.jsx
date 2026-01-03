@@ -50,7 +50,7 @@ export default function AdminDashboard() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-screen bg-slate-50">
+            <div className="flex items-center justify-center min-h-screen bg-slate-50 dark:bg-slate-950">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
             </div>
         );
@@ -101,11 +101,11 @@ export default function AdminDashboard() {
     );
 
     return (
-        <div className="min-h-screen bg-slate-50/50 p-6 space-y-8 pb-20">
+        <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950 p-6 space-y-8 pb-20">
             {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-slate-900">Dashboard Quản Trị</h1>
+                    <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Dashboard Quản Trị</h1>
                     <p className="text-slate-500 mt-1">Tổng quan tình hình kinh doanh và vận hành.</p>
                 </div>
                 <div className="text-xs font-medium bg-card px-3 py-1.5 rounded-md border shadow-sm text-muted-foreground">
@@ -114,7 +114,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* Top Stats Grid */}
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
+            <div className="flex gap-6 flex-wrap md:grid md:grid-cols-2 lg:grid-cols-4">
                 <StatCard
                     title="Doanh thu"
                     value={formatCurrency(revenue)}
@@ -147,14 +147,7 @@ export default function AdminDashboard() {
                     subText="Trên tổng số booking"
                     delay={0.4}
                 />
-                <StatCard
-                    title="Xe hoạt động"
-                    value={activeBuses}
-                    icon={Bus}
-                    colorClass="bg-gradient-to-r from-orange-500 to-amber-500"
-                    subText="Đang chạy tuyến"
-                    delay={0.5}
-                />
+
             </div>
 
             {/* Main Charts Section */}
@@ -229,7 +222,7 @@ export default function AdminDashboard() {
                                     <p className="text-center text-muted-foreground py-8">Chưa có dữ liệu</p>
                                 ) : (
                                     topRoutes.map((route, index) => (
-                                        <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-slate-50 border border-slate-100">
+                                        <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
                                             <div className="flex flex-col">
                                                 <span className="font-medium text-slate-800 text-sm">{route.route_name}</span>
                                                 <span className="text-xs text-slate-500 mt-1">{route.ticket_count} vé đã bán</span>
@@ -280,7 +273,7 @@ export default function AdminDashboard() {
                                 </div>
                                 <div className="space-y-3">
                                     {busPerformance.map((bus, idx) => (
-                                        <div key={idx} className="flex items-center p-3 rounded-lg hover:bg-slate-50 transition-colors">
+                                        <div key={idx} className="flex items-center p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">
                                             <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm mr-4 
                                                 ${idx === 0 ? 'bg-amber-100 text-amber-600' :
                                                     idx === 1 ? 'bg-slate-200 text-slate-600' :

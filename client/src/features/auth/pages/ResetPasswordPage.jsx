@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Lock, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Lock, Loader2, CheckCircle2, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function ResetPasswordPage() {
@@ -19,6 +19,8 @@ export default function ResetPasswordPage() {
     });
     const [status, setStatus] = useState('idle'); // idle | loading | success | error
     const [message, setMessage] = useState('');
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     useEffect(() => {
         if (!token) {
@@ -90,7 +92,7 @@ export default function ResetPasswordPage() {
                                 <div className="flex justify-center">
                                     <CheckCircle2 className="h-12 w-12 text-green-500" />
                                 </div>
-                                <h3 className="text-lg font-semibold text-slate-900">Thành công!</h3>
+                                <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Thành công!</h3>
                                 <p className="text-slate-600">Mật khẩu của bạn đã được cập nhật.</p>
                                 <Button className="w-full bg-indigo-600 hover:bg-indigo-700" onClick={() => navigate('/login')}>
                                     Đăng nhập ngay
@@ -104,13 +106,22 @@ export default function ResetPasswordPage() {
                                         <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
                                         <Input
                                             id="newPassword"
-                                            type="password"
+                                            type={showNewPassword ? "text" : "password"}
                                             placeholder="••••••"
-                                            className="pl-9 h-10"
+                                            className="pl-9 pr-10 h-10"
                                             value={formData.newPassword}
                                             onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
                                             required
+                                            style={{ WebkitTextSecurity: showNewPassword ? 'none' : 'disc' }}
                                         />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowNewPassword(!showNewPassword)}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 focus:outline-none"
+                                            tabIndex={-1}
+                                        >
+                                            {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                        </button>
                                     </div>
                                 </div>
 
@@ -120,13 +131,22 @@ export default function ResetPasswordPage() {
                                         <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
                                         <Input
                                             id="confirmPassword"
-                                            type="password"
+                                            type={showConfirmPassword ? "text" : "password"}
                                             placeholder="••••••"
-                                            className="pl-9 h-10"
+                                            className="pl-9 pr-10 h-10"
                                             value={formData.confirmPassword}
                                             onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                                             required
+                                            style={{ WebkitTextSecurity: showConfirmPassword ? 'none' : 'disc' }}
                                         />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 focus:outline-none"
+                                            tabIndex={-1}
+                                        >
+                                            {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                        </button>
                                     </div>
                                 </div>
 

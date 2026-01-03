@@ -150,7 +150,7 @@ export default function ReviewManagement() {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-slate-900">Quản lý Đánh giá</h1>
+                    <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Quản lý Đánh giá</h1>
                     <p className="text-sm text-muted-foreground">Kiểm duyệt ý kiến khách hàng về chuyến đi.</p>
                 </div>
                 <div className="flex gap-2">
@@ -332,7 +332,7 @@ export default function ReviewManagement() {
                     </DialogHeader>
                     {selectedReview && (
                         <div className="space-y-4 py-2">
-                            <div className="flex justify-between items-center bg-slate-50 p-3 rounded-lg">
+                            <div className="flex justify-between items-center bg-slate-50 dark:bg-slate-900 p-3 rounded-lg">
                                 <div>
                                     <p className="text-sm font-medium text-slate-500">Khách hàng</p>
                                     <p className="font-semibold">{selectedReview.user_name || 'Ẩn danh'}</p>

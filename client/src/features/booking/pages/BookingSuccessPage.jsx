@@ -69,7 +69,7 @@ export default function BookingSuccessPage() {
 
     if (status === 'loading') {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4 space-y-4">
+            <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 p-4 space-y-4">
                 <Loader2 className="w-12 h-12 text-indigo-600 animate-spin" />
                 <p className="text-muted-foreground font-medium">Đang kiểm tra kết quả...</p>
             </div>
@@ -78,7 +78,7 @@ export default function BookingSuccessPage() {
 
     if (status === 'failed') {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+            <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 p-4">
                 <Card className="w-full max-w-md shadow-lg border-red-200">
                     <CardHeader className="text-center flex flex-col items-center">
                         <XCircle className="w-16 h-16 text-red-500 mb-2" />
