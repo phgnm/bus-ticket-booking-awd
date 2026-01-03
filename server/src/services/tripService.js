@@ -90,16 +90,36 @@ class TripService {
             throw new Error('Ghế này đã được bán!');
 
         // 2. redis lock
-        const key = `lock:trip:${tripId}:seat:${seatNumber}`;
-        const result = await seatRepository.setSeatLock(key, userId, 600);
+        // Fail-safe: If Redis is closed or errors, allow proceeding without lock
+        if (!redisClient.isOpen) {
+            console.warn('⚠️ Redis closed, skipping lockSeat');
+            return true;
+        }
 
-        if (!result) throw new Error('Ghế đang được người khác giữ!');
-        return true;
+        try {
+            const key = `lock:trip:${tripId}:seat:${seatNumber}`;
+            const result = await seatRepository.setSeatLock(key, userId, 600);
+
+            if (!result) throw new Error('Ghế đang được người khác giữ!');
+            return true;
+        } catch (err) {
+            // Respect logic errors (locked by other), but ignore connection errors
+            if (err.message === 'Ghế đang được người khác giữ!') throw err;
+
+            console.error('⚠️ Redis error in lockSeat, skipping lock:', err.message);
+            return true;
+        }
     }
 
     async unlockSeat(tripId, seatNumber) {
-        const key = `lock:trip:${tripId}:seat:${seatNumber}`;
-        await seatRepository.removeLock(key);
+        if (!redisClient.isOpen) return;
+
+        try {
+            const key = `lock:trip:${tripId}:seat:${seatNumber}`;
+            await seatRepository.removeLock(key);
+        } catch (err) {
+            console.error('⚠️ Redis error in unlockSeat:', err.message);
+        }
     }
 
     // --- BOOKING  ---
