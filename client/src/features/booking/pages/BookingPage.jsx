@@ -142,7 +142,7 @@ export default function BookingPage() {
     };
 
     const totalPrice = bookingData.selectedSeats.length * parseFloat(trip.price_base);
-    const seatLayout = trip.seat_capacity > 30 ? { rows: 10, cols: 4, aisle: 2 } : { rows: 7, cols: 3, aisle: 1 };
+    const seatLayout = trip.seat_layout || (trip.seat_capacity > 30 ? { rows: 10, cols: 4, aisle: 2 } : { rows: 7, cols: 3, aisle: 1 });
 
     return (
         <div className="container mx-auto py-8 px-4 max-w-4xl">
